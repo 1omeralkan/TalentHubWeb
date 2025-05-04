@@ -6,7 +6,7 @@ router.get("/dashboard", verifyToken, (req, res) => {
   const { fullName, userName, email } = req.user;
 
   res.json({
-    message: `Merhaba ${fullName} (@${userName}), dashboard'a hoş geldin!`,
+    message: `TalentHub'a Hoş Geldin ${fullName}`,
     user: { fullName, userName, email },
   });
 });

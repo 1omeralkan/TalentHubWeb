@@ -1,7 +1,10 @@
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
-const { uploadMedia } = require("../controllers/uploadController");
+const {
+  uploadMedia,
+  getUserUploads,
+} = require("../controllers/uploadController");
 const verifyToken = require("../middleware/verifyToken");
 
 const router = express.Router();
@@ -20,6 +23,10 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
+// 📤 Dosya Yükleme
 router.post("/upload", verifyToken, upload.single("media"), uploadMedia);
+
+// 📂 Kullanıcının yüklediği yetenekleri listeleme
+router.get("/my-uploads", verifyToken, getUserUploads);
 
 module.exports = router;

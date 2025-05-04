@@ -6,7 +6,7 @@ require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const uploadRoutes = require("./routes/uploadRoutes"); // ⬅️ upload route'u eklendi
-
+const exploreRoutes = require("./routes/explore"); // ⬅️ explore route'u eklendi
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -20,7 +20,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api", authRoutes);
 app.use("/api", protectedRoutes);
 app.use("/api", uploadRoutes); // ⬅️ yeni route eklendi
-
+app.use("/api/explore", exploreRoutes); // ⬅️ explore route'u eklendi
 app.get("/", (req, res) => {
   res.send("TalentHub Backend Çalışıyor!");
 });

@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage"; 
 import UploadPage from "./pages/UploadPage"; // ⬅️ Yeni sayfa eklendi
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"; 
+import ProfilPage from "./pages/ProfilPage";
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/dashboard" element={<DashboardPage />} /> 
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />{/* ⬅️ Yeni route */}
+        <Route path="/profile" element={<ProfilPage />} />
       </Routes>
     </Router>
   );
