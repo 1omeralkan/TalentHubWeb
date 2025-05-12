@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { FaUserAlt, FaEnvelope, FaLock, FaUser } from "react-icons/fa";
 
 const RegisterPage = () => {
   const [form, setForm] = useState({
@@ -37,62 +38,68 @@ const RegisterPage = () => {
 
   return (
     <div style={styles.container}>
+      <div style={styles.backgroundBlob}></div>
+      <div style={styles.backgroundWave}></div>
       <div style={styles.card}>
+        <div style={styles.iconCircle}><FaUserAlt size={26} color="#4f46e5" /></div>
         <h2 style={styles.title}>Kayıt Ol</h2>
-
+        <p style={styles.subtitle}>TalentHub'a katıl, yeteneklerini paylaş!</p>
         <form onSubmit={handleSubmit} style={styles.form}>
           <label style={styles.label}>Ad Soyad</label>
-          <input
-            name="fullName"
-            type="text"
-            placeholder="Adınız Soyadınız"
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-
+          <div style={styles.inputWrapper}>
+            <FaUser style={styles.inputIcon} />
+            <input
+              name="fullName"
+              type="text"
+              placeholder="Adınız Soyadınız"
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
           <label style={styles.label}>Kullanıcı Adı</label>
-          <input
-            name="userName"
-            type="text"
-            placeholder="Kullanıcı adınız"
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-
+          <div style={styles.inputWrapper}>
+            <FaUserAlt style={styles.inputIcon} />
+            <input
+              name="userName"
+              type="text"
+              placeholder="Kullanıcı adınız"
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
           <label style={styles.label}>Email</label>
-          <input
-            name="email"
-            type="email"
-            placeholder="Email adresiniz"
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-
+          <div style={styles.inputWrapper}>
+            <FaEnvelope style={styles.inputIcon} />
+            <input
+              name="email"
+              type="email"
+              placeholder="Email adresiniz"
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
           <label style={styles.label}>Şifre</label>
-          <input
-            name="password"
-            type="password"
-            placeholder="Şifreniz"
-            onChange={handleChange}
-            required
-            style={styles.input}
-          />
-
-          {error && <p style={styles.error}>{error}</p>}
-
-          <button type="submit" style={styles.button}>
+          <div style={styles.inputWrapper}>
+            <FaLock style={styles.inputIcon} />
+            <input
+              name="password"
+              type="password"
+              placeholder="Şifreniz"
+              onChange={handleChange}
+              required
+              style={styles.input}
+            />
+          </div>
+          {error && <div style={styles.error}><FaUserAlt style={{marginRight:6}}/>{error}</div>}
+          <button type="submit" style={styles.button} onMouseOver={e=>e.currentTarget.style.background="linear-gradient(90deg,#6366f1,#4f46e5)"} onMouseOut={e=>e.currentTarget.style.background="linear-gradient(90deg,#4f46e5,#6366f1)"}>
             Kayıt Ol
           </button>
         </form>
-
         <p style={styles.bottomText}>
-          Zaten hesabınız var mı?{" "}
-          <Link to="/login" style={styles.link}>
-            Giriş Yap
-          </Link>
+          Zaten hesabınız var mı? <Link to="/login" style={styles.link}>Giriş Yap</Link>
         </p>
       </div>
     </div>
@@ -104,62 +111,154 @@ export default RegisterPage;
 const styles = {
   container: {
     minHeight: "100vh",
-    backgroundColor: "#f4f4f4",
+    background: "linear-gradient(120deg,#e0e7ff 0%,#f6f7fb 100%)",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
+    overflow: "hidden",
+  },
+  backgroundBlob: {
+    position: "absolute",
+    top: "-120px",
+    left: "-100px",
+    width: 340,
+    height: 340,
+    background: "radial-gradient(circle at 60% 40%, #a5b4fc 0%, #6366f1 80%, transparent 100%)",
+    filter: "blur(60px)",
+    opacity: 0.45,
+    zIndex: 0,
+  },
+  backgroundWave: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    width: "100%",
+    height: 90,
+    zIndex: 0,
+    background: "url('data:image/svg+xml;utf8,<svg width=\'100%\' height=\'90\' viewBox=\'0 0 1440 90\' fill=\'none\' xmlns=\'http://www.w3.org/2000/svg\'><path d=\'M0 0h1440v60c-120 20-360 40-720 0S120 80 0 60V0z\' fill=\'%234f46e5\' fill-opacity=\'0.08\'/></svg>') repeat-x bottom" ,
   },
   card: {
-    backgroundColor: "#fff",
-    padding: "2rem",
-    borderRadius: "10px",
-    boxShadow: "0 0 10px rgba(0,0,0,0.1)",
+    background: "#fff",
+    padding: "2rem 1.3rem 1.5rem 1.3rem",
+    borderRadius: "16px",
+    boxShadow: "0 4px 24px rgba(79,70,229,0.10)",
+    border: "1.2px solid #ede9fe",
     width: "100%",
-    maxWidth: "400px",
+    maxWidth: "340px",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    position: "relative",
+    zIndex: 1,
+  },
+  iconCircle: {
+    background: "linear-gradient(135deg,#6366f1 60%,#a5b4fc 100%)",
+    borderRadius: "50%",
+    width: 44,
+    height: 44,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 12,
+    boxShadow: "0 2px 8px rgba(99,102,241,0.10)",
+    border: "2px solid #fff",
+    position: "absolute",
+    top: -22,
+    left: "50%",
+    transform: "translateX(-50%)",
   },
   title: {
-    marginBottom: "1.5rem",
+    marginBottom: "0.5rem",
+    textAlign: "center",
+    fontWeight: 700,
+    fontSize: "1.45rem",
+    letterSpacing: "0.5px",
+    color: "#18181b",
+    marginTop: 28,
+  },
+  subtitle: {
+    color: "#6366f1",
+    fontWeight: 500,
+    fontSize: "0.98rem",
+    marginBottom: "1.1rem",
     textAlign: "center",
   },
   form: {
     display: "flex",
     flexDirection: "column",
+    width: "100%",
+    gap: "0.8rem",
   },
   label: {
-    fontSize: "0.9rem",
-    marginBottom: "0.3rem",
-    fontWeight: "bold",
+    fontSize: "0.97rem",
+    marginBottom: "0.25rem",
+    fontWeight: 600,
+    color: "#22223b",
+  },
+  inputWrapper: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  inputIcon: {
+    position: "absolute",
+    left: 12,
+    color: "#a5b4fc",
+    fontSize: "1rem",
+    zIndex: 2,
   },
   input: {
-    padding: "0.8rem",
-    marginBottom: "1rem",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    fontSize: "1rem",
+    padding: "0.7rem 0.9rem 0.7rem 2.1rem",
+    borderRadius: "8px",
+    border: "1.2px solid #e5e7eb",
+    fontSize: "0.98rem",
+    background: "#f8fafc",
+    transition: "border 0.2s, box-shadow 0.2s",
+    outline: "none",
+    marginBottom: "0.1rem",
+    width: "100%",
+    boxShadow: "0 1px 3px rgba(99,102,241,0.03)",
   },
   button: {
-    padding: "0.9rem",
-    backgroundColor: "#16a34a",
+    background: "linear-gradient(90deg,#4f46e5,#6366f1)",
     color: "#fff",
-    border: "none",
-    borderRadius: "5px",
+    padding: "0.8rem",
     fontWeight: "bold",
+    border: "none",
+    borderRadius: "8px",
     cursor: "pointer",
+    fontSize: "1rem",
+    boxShadow: "0 2px 8px rgba(99,102,241,0.10)",
+    transition: "background 0.2s, box-shadow 0.2s",
+    marginTop: "0.4rem",
   },
   error: {
-    color: "red",
-    marginBottom: "1rem",
+    color: "#ef4444",
+    marginBottom: "0.5rem",
     textAlign: "center",
-    fontSize: "0.9rem",
+    fontSize: "0.95rem",
+    fontWeight: 500,
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    background: "#fef2f2",
+    borderRadius: 7,
+    padding: "0.4rem 0.8rem",
+    border: "1.2px solid #fecaca",
+    animation: "shake 0.2s",
   },
   bottomText: {
-    marginTop: "1rem",
+    marginTop: "0.9rem",
     textAlign: "center",
-    fontSize: "0.9rem",
+    fontSize: "0.97rem",
+    color: "#444",
   },
   link: {
-    color: "#16a34a",
-    textDecoration: "none",
-    fontWeight: "bold",
+    color: "#4f46e5",
+    textDecoration: "underline",
+    fontWeight: 700,
+    transition: "color 0.2s",
+    cursor: "pointer",
   },
 };

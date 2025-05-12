@@ -8,7 +8,8 @@ const uploadMedia = async (req, res) => {
   }
 
   const fileUrl = `/uploads/${req.file.filename}`;
-  const caption = req.body.caption;
+  // caption alanı gelmezse boş string olarak kaydet
+  const caption = req.body.caption || "";
 
   try {
     await prisma.upload.create({
@@ -45,7 +46,24 @@ const getUserUploads = async (req, res) => {
   }
 };
 
+const deleteUpload = async (req, res) => {
+  const { id } = req.params;
+  try {
+    // Kendi yüklediği dosya mı kontrolü (güvenlik için)
+    const upload = await prisma.upload.findUnique({ where: { id: Number(id) } });
+    if (!upload || upload.userId !== req.user.userId) {
+      return res.status(403).json({ message: "Yetkiniz yok!" });
+    }
+    await prisma.upload.delete({ where: { id: Number(id) } });
+    res.status(200).json({ message: "Yetenek silindi" });
+  } catch (err) {
+    console.error("Silme hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
 module.exports = {
   uploadMedia,
   getUserUploads,
+  deleteUpload,
 };

@@ -4,6 +4,7 @@ const path = require("path");
 const {
   uploadMedia,
   getUserUploads,
+  deleteUpload,
 } = require("../controllers/uploadController");
 const verifyToken = require("../middleware/verifyToken");
 
@@ -28,5 +29,6 @@ router.post("/upload", verifyToken, upload.single("media"), uploadMedia);
 
 // 📂 Kullanıcının yüklediği yetenekleri listeleme
 router.get("/my-uploads", verifyToken, getUserUploads);
+router.delete("/uploads/:id", verifyToken, deleteUpload);
 
 module.exports = router;

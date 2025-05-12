@@ -7,6 +7,8 @@ const authRoutes = require("./routes/authRoutes");
 const protectedRoutes = require("./routes/protectedRoutes");
 const uploadRoutes = require("./routes/uploadRoutes"); // ⬅️ upload route'u eklendi
 const exploreRoutes = require("./routes/explore"); // ⬅️ explore route'u eklendi
+const profileRoutes = require('./routes/profileRoutes');
+const followRoutes = require('./routes/followRoutes');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -21,6 +23,8 @@ app.use("/api", authRoutes);
 app.use("/api", protectedRoutes);
 app.use("/api", uploadRoutes); // ⬅️ yeni route eklendi
 app.use("/api/explore", exploreRoutes); // ⬅️ explore route'u eklendi
+app.use('/api', profileRoutes);
+app.use('/api/follow', followRoutes);
 app.get("/", (req, res) => {
   res.send("TalentHub Backend Çalışıyor!");
 });
