@@ -70,6 +70,18 @@ const ProfilPage = () => {
       .catch(err => console.error("Takip edilenler listesi hatası:", err));
   }, [userId]);
 
+  useEffect(() => {
+    if (!userId) return;
+    const token = localStorage.getItem("token");
+    fetch("http://localhost:5000/api/me", {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => {
+        setUser(prev => ({ ...prev, ...data }));
+      });
+  }, [userId]);
+
   const handleFollow = async (userId) => {
     if (followLoading[userId]) return;
     
@@ -125,7 +137,7 @@ const ProfilPage = () => {
               <div style={styles.userInfo}>
                 <div style={styles.userAvatar}>
                   {user.profilePhotoUrl ? (
-                    <img src={user.profilePhotoUrl} alt={user.userName} style={styles.avatarImage} />
+                    <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={styles.avatarImage} />
                   ) : (
                     <span style={styles.avatarInitial}>{user.userName?.[0]?.toUpperCase() || 'K'}</span>
                   )}
@@ -187,7 +199,7 @@ const ProfilPage = () => {
         <div style={styles.avatarWrapper}>
           <div style={styles.avatarCircle}>
             {user.profilePhotoUrl ? (
-              <img src={user.profilePhotoUrl} alt={user.userName} style={styles.avatarImage} />
+              <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={styles.avatarImage} />
             ) : (
               <span style={styles.avatarInitial}>{user.fullName ? user.fullName[0].toUpperCase() : (user.userName ? user.userName[0].toUpperCase() : 'K')}</span>
             )}
@@ -196,6 +208,9 @@ const ProfilPage = () => {
         <div style={styles.profileUserName}>
           @{user.userName || user.fullName || 'Kullanıcı'}
         </div>
+        {user.bio && (
+          <div style={styles.profileBio}>{user.bio}</div>
+        )}
         <div style={styles.profileStatsRow}>
           <div style={styles.profileStat}>
             <span style={styles.profileStatNumber}>{uploads.length}</span>
@@ -297,14 +312,15 @@ const styles = {
     marginBottom: '1.2rem',
   },
   avatarCircle: {
-    width: '96px',
-    height: '96px',
+    width: '120px',
+    height: '120px',
     borderRadius: '50%',
     background: 'linear-gradient(135deg, #4f46e5 60%, #a5b4fc 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     boxShadow: '0 2px 12px rgba(79,70,229,0.10)',
+    overflow: 'hidden',
   },
   avatarInitial: {
     color: '#fff',
@@ -320,6 +336,16 @@ const styles = {
     marginBottom: '0.2rem',
     letterSpacing: '0.2px',
     textAlign: 'center',
+  },
+  profileBio: {
+    color: '#666',
+    fontSize: '1.05rem',
+    margin: '0.5rem 0 0.7rem 0',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    maxWidth: '320px',
+    whiteSpace: 'pre-line',
+    wordBreak: 'break-word',
   },
   profileStatsRow: {
     display: 'flex',
@@ -532,6 +558,8 @@ const styles = {
     width: '100%',
     height: '100%',
     objectFit: 'cover',
+    borderRadius: '50%',
+    display: 'block',
   },
   userDetails: {
     display: 'flex',

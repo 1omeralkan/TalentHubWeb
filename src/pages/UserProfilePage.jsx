@@ -36,7 +36,7 @@ const UserProfilePage = () => {
         <div style={styles.avatarWrapper}>
           <div style={styles.avatarCircle}>
             {user.profilePhotoUrl ? (
-              <img src={user.profilePhotoUrl} alt={user.userName} style={styles.avatarImage} />
+              <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={styles.avatarImage} />
             ) : (
               <span style={styles.avatarInitial}>{user.fullName ? user.fullName[0].toUpperCase() : (user.userName ? user.userName[0].toUpperCase() : 'K')}</span>
             )}

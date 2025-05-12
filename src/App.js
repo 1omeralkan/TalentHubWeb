@@ -8,6 +8,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProfilPage from "./pages/ProfilPage";
 import EditProfilePage from "./pages/EditProfilePage";
 import MainLayout from "./layouts/MainLayout";
+import UserProfilePage from "./pages/UserProfilePage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
         <Route path="/upload" element={<UploadPage />} />
         <Route path="/profile" element={<ProfilPage />} />
         <Route path="/edit-profile" element={<EditProfilePage />} />
+        <Route path="/profile/:userId" element={<UserProfilePage />} />
         </Route>
       </Routes>
     </Router>

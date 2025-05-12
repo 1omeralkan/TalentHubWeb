@@ -67,7 +67,7 @@ const MainLayout = () => {
             <ul style={styles.searchDropdown}>
               {searchResults.map(user => (
                 <li key={user.id} style={styles.searchResultItem} onClick={() => handleResultClick(user.id)}>
-                  <img src={user.profilePhotoUrl || "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.fullName || user.userName)} alt="" style={styles.searchAvatar} />
+                  <img src={user.profilePhotoUrl ? `http://localhost:5000${user.profilePhotoUrl}` : "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.fullName || user.userName)} alt="" style={styles.searchAvatar} />
                   <div>
                     <div style={{ fontWeight: 600, color: '#4f46e5', fontSize: '1rem' }}>@{user.userName}</div>
                     <div style={{ color: '#444', fontSize: '0.95rem' }}>{user.fullName}</div>

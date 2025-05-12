@@ -100,7 +100,7 @@ const getMe = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      select: { fullName: true, userName: true, email: true, bio: true },
+      select: { fullName: true, userName: true, email: true, bio: true, profilePhotoUrl: true },
     });
     if (!user) return res.status(404).json({ message: "Kullanıcı bulunamadı" });
     res.json(user);
@@ -111,7 +111,7 @@ const getMe = async (req, res) => {
 
 // ✅ PROFİL DÜZENLE
 const editProfile = async (req, res) => {
-  const { fullName, userName } = req.body;
+  const { fullName, userName, bio } = req.body;
   try {
     // Kullanıcı adı başka biri tarafından alınmış mı kontrolü
     const existing = await prisma.user.findFirst({
@@ -123,9 +123,9 @@ const editProfile = async (req, res) => {
     if (existing) return res.status(400).json({ message: "Bu kullanıcı adı zaten alınmış" });
     const updated = await prisma.user.update({
       where: { id: req.user.userId },
-      data: { fullName, userName },
+      data: { fullName, userName, bio },
     });
-    res.json({ message: "Profil güncellendi", user: { fullName: updated.fullName, userName: updated.userName } });
+    res.json({ message: "Profil güncellendi", user: { fullName: updated.fullName, userName: updated.userName, bio: updated.bio } });
   } catch (err) {
     res.status(500).json({ message: "Sunucu hatası" });
   }
