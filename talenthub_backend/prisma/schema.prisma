@@ -21,6 +21,7 @@ model User {
   // Takip ilişkileri
   followers    Follow[] @relation("following")
   following    Follow[] @relation("follower")
+  likes     Like[] // Kullanıcının beğenileri
 }
 
 model Upload {
@@ -30,6 +31,8 @@ model Upload {
   user      User     @relation(fields: [userId], references: [id])
   userId    Int
   createdAt DateTime @default(now())
+  analysis  Json?    // <-- Analiz sonucu için yeni alan
+  likes     Like[]   // Postun beğenileri
 }
 
 // Yeni Follow modeli
@@ -44,4 +47,15 @@ model Follow {
   @@unique([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  upload    Upload   @relation(fields: [uploadId], references: [id])
+  uploadId  Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, uploadId]) // Bir kullanıcı bir postu bir kez beğenebilir
 }

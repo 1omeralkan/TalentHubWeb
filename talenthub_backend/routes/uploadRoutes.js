@@ -5,6 +5,10 @@ const {
   uploadMedia,
   getUserUploads,
   deleteUpload,
+  toggleLike,
+  getLikesCount,
+  isPostLikedByUser,
+  getLikers,
 } = require("../controllers/uploadController");
 const verifyToken = require("../middleware/verifyToken");
 
@@ -30,5 +34,11 @@ router.post("/upload", verifyToken, upload.single("media"), uploadMedia);
 // 📂 Kullanıcının yüklediği yetenekleri listeleme
 router.get("/my-uploads", verifyToken, getUserUploads);
 router.delete("/uploads/:id", verifyToken, deleteUpload);
+
+// Beğeni işlemleri
+router.post("/uploads/:id/like", verifyToken, toggleLike);
+router.get("/uploads/:id/likes", getLikesCount);
+router.get("/uploads/:id/isLiked", verifyToken, isPostLikedByUser);
+router.get("/uploads/:id/likers", getLikers);
 
 module.exports = router;

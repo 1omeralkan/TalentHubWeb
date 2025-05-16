@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { FaUser, FaUpload, FaHome, FaPlusSquare, FaSearch, FaHeart, FaCommentDots, FaBookmark, FaShare, FaUserPlus } from "react-icons/fa";
+import LikeButton from "../ui/LikeButton";
 
 const DashboardPage = () => {
   const [message, setMessage] = useState("");
@@ -198,10 +199,34 @@ const DashboardPage = () => {
                 </button>
               </div>
               <span style={styles.infoCaptionPro}>{videoItems[activeIndex].caption}</span>
+              {/* Analiz Sonucu */}
+              {videoItems[activeIndex].analysis ? (
+                <div style={{
+                  background: '#f8fafc',
+                  borderRadius: 10,
+                  padding: '12px 18px',
+                  marginTop: 14,
+                  fontSize: '1rem',
+                  color: '#23223b',
+                  boxShadow: '0 1.5px 6px rgba(99,102,241,0.06)',
+                  minWidth: 220,
+                  maxWidth: 320,
+                  textAlign: 'left',
+                  border: '1.2px solid #e0e7ff',
+                  fontWeight: 500
+                }}>
+                  <div style={{fontWeight:600, color:'#4f46e5', marginBottom:4, fontSize:'1.07rem'}}>Video Analizi</div>
+                  <div>Toplam Frame: <b>{videoItems[activeIndex].analysis.frame_count}</b></div>
+                  <div style={{display:'flex',alignItems:'center',gap:8}}>Ortalama Renk: <span style={{display:'inline-block',width:18,height:18,background:`rgb(${videoItems[activeIndex].analysis.avg_color.map(Math.round).join(',')})`,borderRadius:4,border:'1px solid #ddd',verticalAlign:'middle'}}></span></div>
+                  <div>Poz Tespiti: <b style={{color:videoItems[activeIndex].analysis.pose_detected?'#22c55e':'#ef4444'}}>{videoItems[activeIndex].analysis.pose_detected ? 'Var' : 'Yok'}</b></div>
+                </div>
+              ) : (
+                <div style={{color:'#888',fontStyle:'italic',marginTop:12,fontSize:'0.98rem'}}>Analiz ediliyor...</div>
+              )}
             </div>
           </div>
           <div style={styles.tiktokActionBar}>
-            <div style={styles.actionItem}><FaHeart style={styles.actionIcon} /><span style={styles.actionCount}>123</span></div>
+            <LikeButton uploadId={videoItems[activeIndex].id} />
             <div style={styles.actionItem}><FaCommentDots style={styles.actionIcon} /><span style={styles.actionCount}>45</span></div>
             <div style={styles.actionItem}><FaBookmark style={styles.actionIcon} /><span style={styles.actionCount}>12</span></div>
             <div style={styles.actionItem}><FaShare style={styles.actionIcon} /><span style={styles.actionCount}>7</span></div>

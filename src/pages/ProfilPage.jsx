@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { FaUser, FaUpload, FaHome, FaEllipsisV, FaUserPlus, FaUsers } from "react-icons/fa";
+import LikeCount from "../ui/LikeCount";
 
 const ProfilPage = () => {
   const [user, setUser] = useState({});
@@ -282,6 +283,7 @@ const ProfilPage = () => {
                 )}
                 <div style={styles.caption}>{item.caption}</div>
                 <div style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</div>
+                <LikeCount uploadId={item.id} />
               </div>
             ))}
           </div>

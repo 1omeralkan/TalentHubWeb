@@ -1,5 +1,6 @@
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
+const axios = require('axios');
 
 // 📤 Medya yükleme
 const uploadMedia = async (req, res) => {
@@ -12,13 +13,21 @@ const uploadMedia = async (req, res) => {
   const caption = req.body.caption || "";
 
   try {
-    await prisma.upload.create({
+    const upload = await prisma.upload.create({
       data: {
         mediaUrl: fileUrl,
         caption: caption,
         userId: req.user.userId,
       },
     });
+
+    const analysis = await analyzeVideoWithPython(`./${fileUrl}`);
+    if (analysis) {
+      await prisma.upload.update({
+        where: { id: upload.id },
+        data: { analysis },
+      });
+    }
 
     res.status(200).json({
       message: "Dosya başarıyla yüklendi!",
@@ -62,8 +71,119 @@ const deleteUpload = async (req, res) => {
   }
 };
 
+async function analyzeVideoWithPython(videoPath) {
+  try {
+    const res = await axios.post('http://localhost:5001/analyze', { video_path: videoPath });
+    return res.data;
+  } catch (err) {
+    console.error('Video analiz hatası:', err.message);
+    return null;
+  }
+}
+
+// Bir postu beğen veya beğenmekten vazgeç (toggle)
+const toggleLike = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  const userId = req.user.userId;
+  try {
+    // Kullanıcı bu postu zaten beğenmiş mi?
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_uploadId: {
+          userId,
+          uploadId,
+        },
+      },
+    });
+    if (existingLike) {
+      // Beğeniyi kaldır (unlike)
+      await prisma.like.delete({
+        where: { id: existingLike.id },
+      });
+      return res.status(200).json({ liked: false });
+    } else {
+      // Beğeni ekle
+      await prisma.like.create({
+        data: {
+          userId,
+          uploadId,
+        },
+      });
+      return res.status(200).json({ liked: true });
+    }
+  } catch (err) {
+    console.error("Beğeni hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir postun toplam beğeni sayısını getir
+const getLikesCount = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  try {
+    const count = await prisma.like.count({
+      where: { uploadId },
+    });
+    res.status(200).json({ count });
+  } catch (err) {
+    console.error("Beğeni sayısı hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir kullanıcı bu postu beğenmiş mi?
+const isPostLikedByUser = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  const userId = Number(req.query.userId) || req.user?.userId;
+  if (!userId) return res.status(400).json({ message: "Kullanıcı ID gerekli" });
+  try {
+    const like = await prisma.like.findUnique({
+      where: {
+        userId_uploadId: {
+          userId,
+          uploadId,
+        },
+      },
+    });
+    res.status(200).json({ liked: !!like });
+  } catch (err) {
+    console.error("Beğeni kontrol hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir gönderiyi beğenen kullanıcıların listesini getir
+const getLikers = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  try {
+    const likers = await prisma.like.findMany({
+      where: { uploadId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+            fullName: true,
+            profilePhotoUrl: true,
+          },
+        },
+      },
+    });
+    res.status(200).json({
+      users: likers.map(like => like.user)
+    });
+  } catch (err) {
+    console.error("Beğenenler listesi hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
 module.exports = {
   uploadMedia,
   getUserUploads,
   deleteUpload,
+  toggleLike,
+  getLikesCount,
+  isPostLikedByUser,
+  getLikers,
 };

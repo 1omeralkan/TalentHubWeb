@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaUser, FaEllipsisV } from "react-icons/fa";
+import LikeCount from "../ui/LikeCount";
 
 const UserProfilePage = () => {
   const { userId } = useParams();
@@ -61,6 +62,7 @@ const UserProfilePage = () => {
                 )}
                 <div style={styles.caption}>{item.caption}</div>
                 <div style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</div>
+                <LikeCount uploadId={item.id} />
               </div>
             ))}
           </div>
