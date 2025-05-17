@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { FaUser, FaUpload, FaHome, FaPlusSquare, FaSearch, FaHeart, FaCommentDots, FaBookmark, FaShare, FaUserPlus } from "react-icons/fa";
 import LikeButton from "../ui/LikeButton";
+import CommentSection from "../ui/CommentSection";
 
 const DashboardPage = () => {
   const [message, setMessage] = useState("");
@@ -224,6 +225,8 @@ const DashboardPage = () => {
                 <div style={{color:'#888',fontStyle:'italic',marginTop:12,fontSize:'0.98rem'}}>Analiz ediliyor...</div>
               )}
             </div>
+            {/* Yorumlar */}
+            <CommentSection uploadId={videoItems[activeIndex].id} currentUser={user} />
           </div>
           <div style={styles.tiktokActionBar}>
             <LikeButton uploadId={videoItems[activeIndex].id} />
