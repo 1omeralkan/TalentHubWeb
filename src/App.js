@@ -1,9 +1,8 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import RegisterPage from "./pages/RegisterPage";
-import LoginPage from "./pages/LoginPage";
+import LoginRegisterPage from "./pages/LoginRegisterPage";
 import DashboardPage from "./pages/DashboardPage"; 
-import UploadPage from "./pages/UploadPage"; // ⬅️ Yeni sayfa eklendi
+import UploadPage from "./pages/UploadPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage"; 
 import ProfilPage from "./pages/ProfilPage";
 import EditProfilePage from "./pages/EditProfilePage";
@@ -14,8 +13,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<LoginRegisterPage />} />
+        <Route path="/login" element={<LoginRegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<MainLayout />}>
         <Route path="/dashboard" element={<DashboardPage />} /> 

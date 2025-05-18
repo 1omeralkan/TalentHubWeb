@@ -3,6 +3,8 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { FaUser, FaUpload, FaHome, FaEllipsisV, FaUserPlus, FaUsers } from "react-icons/fa";
 import LikeCount from "../ui/LikeCount";
+import DislikeCount from "../ui/DislikeCount";
+import CommentCount from "../ui/CommentCount";
 
 const ProfilPage = () => {
   const [user, setUser] = useState({});
@@ -283,7 +285,11 @@ const ProfilPage = () => {
                 )}
                 <div style={styles.caption}>{item.caption}</div>
                 <div style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</div>
-                <LikeCount uploadId={item.id} />
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 }}>
+                  <LikeCount uploadId={item.id} />
+                  <DislikeCount uploadId={item.id} />
+                  <CommentCount uploadId={item.id} />
+                </div>
               </div>
             ))}
           </div>

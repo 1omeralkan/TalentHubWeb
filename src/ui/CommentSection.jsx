@@ -416,7 +416,7 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
   );
 };
 
-const CommentSection = ({ uploadId, currentUser }) => {
+const CommentSection = ({ uploadId, currentUser, hideTitle = false }) => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(false);
@@ -515,7 +515,9 @@ const CommentSection = ({ uploadId, currentUser }) => {
 
   return (
     <div style={{ marginTop: 24, width: "100%", maxWidth: 440, background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 16px rgba(99,102,241,0.06)', padding: '18px 22px' }}>
-      <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 14, color: '#23223b', letterSpacing: 0.2 }}>Yorumlar</h3>
+      {!hideTitle && (
+        <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 14, color: '#23223b', letterSpacing: 0.2 }}>Yorumlar</h3>
+      )}
       {loading && <div>Yükleniyor...</div>}
       {error && <div style={{ color: "#e11d48", fontWeight: 500 }}>{error}</div>}
       <div style={{ maxHeight: 320, overflowY: "auto", marginBottom: 14, paddingRight: 4 }}>

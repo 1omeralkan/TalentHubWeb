@@ -178,6 +178,108 @@ const getLikers = async (req, res) => {
   }
 };
 
+// Bir postu dislike et veya dislike'dan vazgeç (toggle)
+const toggleDislike = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  const userId = req.user.userId;
+  try {
+    // Kullanıcı bu postu zaten dislike etmiş mi?
+    const existingDislike = await prisma.dislike.findUnique({
+      where: {
+        userId_uploadId: {
+          userId,
+          uploadId,
+        },
+      },
+    });
+    if (existingDislike) {
+      // Dislike'ı kaldır
+      await prisma.dislike.delete({ where: { id: existingDislike.id } });
+      return res.status(200).json({ disliked: false });
+    } else {
+      // Eğer like varsa önce onu kaldır
+      const existingLike = await prisma.like.findUnique({
+        where: {
+          userId_uploadId: {
+            userId,
+            uploadId,
+          },
+        },
+      });
+      if (existingLike) {
+        await prisma.like.delete({ where: { id: existingLike.id } });
+      }
+      // Dislike ekle
+      await prisma.dislike.create({
+        data: { userId, uploadId },
+      });
+      return res.status(200).json({ disliked: true });
+    }
+  } catch (err) {
+    console.error("Dislike hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir postun toplam dislike sayısını getir
+const getDislikesCount = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  try {
+    const count = await prisma.dislike.count({ where: { uploadId } });
+    res.status(200).json({ count });
+  } catch (err) {
+    console.error("Dislike sayısı hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir kullanıcı bu postu dislike etmiş mi?
+const isPostDislikedByUser = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  const userId = Number(req.query.userId) || req.user?.userId;
+  if (!userId) return res.status(400).json({ message: "Kullanıcı ID gerekli" });
+  try {
+    const dislike = await prisma.dislike.findUnique({
+      where: {
+        userId_uploadId: {
+          userId,
+          uploadId,
+        },
+      },
+    });
+    res.status(200).json({ disliked: !!dislike });
+  } catch (err) {
+    console.error("Dislike kontrol hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
+// Bir gönderiyi dislike eden kullanıcıların listesini getir
+const getDislikers = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  try {
+    const dislikers = await prisma.dislike.findMany({
+      where: { uploadId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+            fullName: true,
+            profilePhotoUrl: true,
+          },
+        },
+      },
+    });
+    res.status(200).json({
+      users: dislikers.map(dislike => dislike.user)
+    });
+  } catch (err) {
+    console.error("Beğenmeyenler listesi hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
 module.exports = {
   uploadMedia,
   getUserUploads,
@@ -186,4 +288,8 @@ module.exports = {
   getLikesCount,
   isPostLikedByUser,
   getLikers,
+  toggleDislike,
+  getDislikesCount,
+  isPostDislikedByUser,
+  getDislikers,
 };

@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
-import { FaUser, FaUpload, FaHome, FaPlusSquare, FaSearch, FaHeart, FaCommentDots, FaBookmark, FaShare, FaUserPlus } from "react-icons/fa";
+import { FaUser, FaUpload, FaHome, FaPlusSquare, FaSearch, FaHeart, FaCommentDots, FaBookmark, FaShare, FaUserPlus, FaTimes } from "react-icons/fa";
 import LikeButton from "../ui/LikeButton";
 import CommentSection from "../ui/CommentSection";
 
@@ -16,6 +16,8 @@ const DashboardPage = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const videoRefs = useRef([]);
   const [followLoading, setFollowLoading] = useState(false);
+  const [commentCount, setCommentCount] = useState(0);
+  const [showCommentsPanel, setShowCommentsPanel] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -59,6 +61,33 @@ const DashboardPage = () => {
       })
       .catch(() => setLoading(false));
   }, [navigate]);
+
+  useEffect(() => {
+    // Yorum sayısını çek
+    const fetchCommentCount = async () => {
+      if (!exploreItems[activeIndex]?.id) return;
+      try {
+        const res = await fetch(`http://localhost:5000/api/comments/${exploreItems[activeIndex].id}`);
+        const data = await res.json();
+        // Tüm yorumlar ve alt yanıtları recursive say
+        function countAllComments(comments) {
+          if (!Array.isArray(comments)) return 0;
+          let total = 0;
+          for (const comment of comments) {
+            total += 1;
+            if (comment.replies && comment.replies.length > 0) {
+              total += countAllComments(comment.replies);
+            }
+          }
+          return total;
+        }
+        setCommentCount(countAllComments(data));
+      } catch {
+        setCommentCount(0);
+      }
+    };
+    fetchCommentCount();
+  }, [activeIndex, exploreItems]);
 
   const videoItems = exploreItems.filter(item =>
     item.mediaUrl.endsWith('.mp4') || item.mediaUrl.endsWith('.webm')
@@ -161,79 +190,139 @@ const DashboardPage = () => {
   };
 
   return (
-    <div style={styles.tiktokMainArea}>
+    <div style={{
+      ...styles.tiktokMainArea,
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
       {loading ? (
         <p>Yükleniyor...</p>
       ) : videoItems.length === 0 ? (
         <p>Hiç video yok.</p>
       ) : (
-        <div style={styles.tiktokVideoOuter}>
-          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
-            <div style={styles.tiktokVideoCardPro}>
-              <video
-                ref={el => videoRefs.current[activeIndex] = el}
-                src={`http://localhost:5000${videoItems[activeIndex].mediaUrl}`}
-                style={styles.tiktokVideoPro}
-                controls
-                autoPlay
-                loop
-              />
-            </div>
-            <div style={styles.tiktokInfoBoxPro}>
-              <div style={styles.userInfoContainer}>
-                <span style={styles.infoUserPro}>@{videoItems[activeIndex].user?.userName || videoItems[activeIndex].user?.fullName || 'Kullanıcı'}</span>
-                <button 
-                  onClick={() => handleFollow(videoItems[activeIndex].user?.id)}
-                  disabled={followLoading}
-                  style={{
-                    ...styles.followButton,
-                    background: followedUsers.has(videoItems[activeIndex].user?.id) 
-                      ? 'linear-gradient(90deg, #e5e7eb, #d1d5db)'
-                      : 'linear-gradient(90deg, #4f46e5, #6366f1)',
-                    opacity: followLoading ? 0.7 : 1,
-                    cursor: followLoading ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  <FaUserPlus style={{marginRight: 6, fontSize: '0.9rem'}} />
-                  {followLoading ? 'İşleniyor...' : 
-                    followedUsers.has(videoItems[activeIndex].user?.id) ? 'Takip Edildi' : 'Takip Et'}
-                </button>
-              </div>
-              <span style={styles.infoCaptionPro}>{videoItems[activeIndex].caption}</span>
-              {/* Analiz Sonucu */}
-              {videoItems[activeIndex].analysis ? (
-                <div style={{
-                  background: '#f8fafc',
-                  borderRadius: 10,
-                  padding: '12px 18px',
-                  marginTop: 14,
-                  fontSize: '1rem',
-                  color: '#23223b',
-                  boxShadow: '0 1.5px 6px rgba(99,102,241,0.06)',
-                  minWidth: 220,
-                  maxWidth: 320,
-                  textAlign: 'left',
-                  border: '1.2px solid #e0e7ff',
-                  fontWeight: 500
-                }}>
-                  <div style={{fontWeight:600, color:'#4f46e5', marginBottom:4, fontSize:'1.07rem'}}>Video Analizi</div>
-                  <div>Toplam Frame: <b>{videoItems[activeIndex].analysis.frame_count}</b></div>
-                  <div style={{display:'flex',alignItems:'center',gap:8}}>Ortalama Renk: <span style={{display:'inline-block',width:18,height:18,background:`rgb(${videoItems[activeIndex].analysis.avg_color.map(Math.round).join(',')})`,borderRadius:4,border:'1px solid #ddd',verticalAlign:'middle'}}></span></div>
-                  <div>Poz Tespiti: <b style={{color:videoItems[activeIndex].analysis.pose_detected?'#22c55e':'#ef4444'}}>{videoItems[activeIndex].analysis.pose_detected ? 'Var' : 'Yok'}</b></div>
+        <div style={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          justifyContent: 'center',
+          width: '100%',
+          maxWidth: '1320px',
+          margin: '0 auto',
+          transition: 'all 0.35s cubic-bezier(.4,1.3,.6,1)',
+        }}>
+          <div style={{
+            transition: 'transform 0.35s cubic-bezier(.4,1.3,.6,1)',
+            transform: showCommentsPanel ? 'translateX(-20px)' : 'translateX(0)',
+            marginRight: showCommentsPanel ? '0' : '0',
+          }}>
+            <div style={styles.tiktokVideoOuter}>
+              <div style={styles.videoActionWrapper}>
+                <div style={styles.tiktokVideoCardPro}>
+                  <video
+                    ref={el => videoRefs.current[activeIndex] = el}
+                    src={`http://localhost:5000${videoItems[activeIndex].mediaUrl}`}
+                    style={styles.tiktokVideoPro}
+                    controls
+                    autoPlay
+                    loop
+                  />
                 </div>
-              ) : (
-                <div style={{color:'#888',fontStyle:'italic',marginTop:12,fontSize:'0.98rem'}}>Analiz ediliyor...</div>
-              )}
+                <div style={styles.tiktokActionBar}>
+                  <LikeButton uploadId={videoItems[activeIndex].id} />
+                  <div
+                    style={styles.actionItem}
+                    onClick={() => setShowCommentsPanel(true)}
+                    onMouseEnter={e => {
+                      e.currentTarget.querySelector('svg').style.color = '#4f46e5';
+                      e.currentTarget.querySelector('svg').style.filter = 'drop-shadow(0 2px 8px #6366f1aa)';
+                      e.currentTarget.querySelector('span').style.color = '#4f46e5';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.querySelector('svg').style.color = '#bbb';
+                      e.currentTarget.querySelector('svg').style.filter = 'none';
+                      e.currentTarget.querySelector('span').style.color = '#bbb';
+                    }}
+                  >
+                    <FaCommentDots style={{ ...styles.actionIcon }} />
+                    <span style={{ ...styles.actionCount }}>{commentCount}</span>
+                  </div>
+                  <div
+                    style={styles.actionItem}
+                    onMouseEnter={e => {
+                      e.currentTarget.querySelector('svg').style.color = '#a21caf';
+                      e.currentTarget.querySelector('svg').style.filter = 'drop-shadow(0 2px 8px #a21caf88)';
+                      e.currentTarget.querySelector('span').style.color = '#a21caf';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.querySelector('svg').style.color = '#bbb';
+                      e.currentTarget.querySelector('svg').style.filter = 'none';
+                      e.currentTarget.querySelector('span').style.color = '#bbb';
+                    }}
+                  >
+                    <FaShare style={{ ...styles.actionIcon }} />
+                    <span style={{ ...styles.actionCount }}>7</span>
+                  </div>
+                </div>
+              </div>
+              <div style={styles.tiktokInfoBoxPro}>
+                <div style={styles.userInfoContainer}>
+                  <span style={styles.infoUserPro}>@{videoItems[activeIndex].user?.userName || videoItems[activeIndex].user?.fullName || 'Kullanıcı'}</span>
+                  <button 
+                    onClick={() => handleFollow(videoItems[activeIndex].user?.id)}
+                    disabled={followLoading}
+                    style={{
+                      ...styles.followButton,
+                      background: followedUsers.has(videoItems[activeIndex].user?.id) 
+                        ? 'linear-gradient(90deg, #e5e7eb, #d1d5db)'
+                        : 'linear-gradient(90deg, #4f46e5, #6366f1)',
+                      opacity: followLoading ? 0.7 : 1,
+                      cursor: followLoading ? 'not-allowed' : 'pointer'
+                    }}
+                  >
+                    <FaUserPlus style={{marginRight: 6, fontSize: '0.9rem'}} />
+                    {followLoading ? 'İşleniyor...' : 
+                      followedUsers.has(videoItems[activeIndex].user?.id) ? 'Takip Edildi' : 'Takip Et'}
+                  </button>
+                </div>
+                <span style={styles.infoCaptionPro}>{videoItems[activeIndex].caption}</span>
+                {/* Analiz Sonucu */}
+                {videoItems[activeIndex].analysis ? (
+                  <div style={{
+                    background: '#f8fafc',
+                    borderRadius: 10,
+                    padding: '12px 18px',
+                    marginTop: 14,
+                    fontSize: '1rem',
+                    color: '#23223b',
+                    boxShadow: '0 1.5px 6px rgba(99,102,241,0.06)',
+                    minWidth: 220,
+                    maxWidth: 320,
+                    textAlign: 'left',
+                    border: '1.2px solid #e0e7ff',
+                    fontWeight: 500
+                  }}>
+                    <div style={{fontWeight:600, color:'#4f46e5', marginBottom:4, fontSize:'1.07rem'}}>Video Analizi</div>
+                    <div>Toplam Frame: <b>{videoItems[activeIndex].analysis.frame_count}</b></div>
+                    <div style={{display:'flex',alignItems:'center',gap:8}}>Ortalama Renk: <span style={{display:'inline-block',width:18,height:18,background:`rgb(${videoItems[activeIndex].analysis.avg_color.map(Math.round).join(',')})`,borderRadius:4,border:'1px solid #ddd',verticalAlign:'middle'}}></span></div>
+                    <div>Poz Tespiti: <b style={{color:videoItems[activeIndex].analysis.pose_detected?'#22c55e':'#ef4444'}}>{videoItems[activeIndex].analysis.pose_detected ? 'Var' : 'Yok'}</b></div>
+                  </div>
+                ) : (
+                  <div style={{color:'#888',fontStyle:'italic',marginTop:12,fontSize:'0.98rem'}}>Analiz ediliyor...</div>
+                )}
+              </div>
             </div>
-            {/* Yorumlar */}
-            <CommentSection uploadId={videoItems[activeIndex].id} currentUser={user} />
           </div>
-          <div style={styles.tiktokActionBar}>
-            <LikeButton uploadId={videoItems[activeIndex].id} />
-            <div style={styles.actionItem}><FaCommentDots style={styles.actionIcon} /><span style={styles.actionCount}>45</span></div>
-            <div style={styles.actionItem}><FaBookmark style={styles.actionIcon} /><span style={styles.actionCount}>12</span></div>
-            <div style={styles.actionItem}><FaShare style={styles.actionIcon} /><span style={styles.actionCount}>7</span></div>
-          </div>
+          {showCommentsPanel && (
+            <div style={{ ...styles.commentsPanelFixed, position: 'static', boxShadow: '0 0 24px rgba(30,32,44,0.13)' }}>
+              <div style={styles.commentsPanelHeader}>
+                <span style={{fontWeight:700, fontSize:20}}>Yorumlar</span>
+                <button onClick={() => setShowCommentsPanel(false)} style={styles.closeButton} aria-label="Kapat"><FaTimes /></button>
+              </div>
+              <div style={styles.commentsPanelContent}>
+                <CommentSection uploadId={videoItems[activeIndex].id} currentUser={user} hideTitle />
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -253,13 +342,22 @@ const styles = {
   },
   tiktokVideoOuter: {
     display: 'flex',
-    flexDirection: 'row',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: '2.5rem',
+    gap: '0.5rem',
     width: '100%',
     maxWidth: '900px',
     minHeight: '80vh',
+  },
+  videoActionWrapper: {
+    position: 'relative',
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '340px',
+    marginBottom: '0.5rem',
   },
   tiktokVideoCard: {
     position: 'relative',
@@ -316,6 +414,10 @@ const styles = {
     wordBreak: 'break-word',
   },
   tiktokActionBar: {
+    position: 'absolute',
+    left: '100%',
+    top: '50%',
+    transform: 'translateY(-50%) translateX(32px)',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
@@ -325,8 +427,9 @@ const styles = {
     padding: '1.2rem 0.7rem',
     boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
     minWidth: '60px',
-    marginLeft: '1.2rem',
-    },
+    zIndex: 2,
+    height: 'fit-content',
+  },
   actionItem: {
     display: 'flex',
     flexDirection: 'column',
@@ -337,15 +440,28 @@ const styles = {
     fontWeight: 500,
     fontSize: '1.08rem',
     transition: 'color 0.2s',
+    userSelect: 'none',
   },
   actionIcon: {
     fontSize: '2rem',
     marginBottom: '0.1rem',
+    color: '#bbb',
+    transition: 'color 0.18s, filter 0.18s',
+    filter: 'none',
+  },
+  actionIconActive: {
+    color: '#4f46e5',
+    filter: 'drop-shadow(0 2px 8px #6366f1aa)',
+  },
+  actionIconShare: {
+    color: '#a21caf',
+    filter: 'drop-shadow(0 2px 8px #a21caf88)',
   },
   actionCount: {
     fontSize: '1rem',
-    color: '#222',
+    color: '#bbb',
     fontWeight: 500,
+    transition: 'color 0.18s',
   },
   tiktokVideoCardSmall: {
     position: 'relative',
@@ -470,5 +586,62 @@ const styles = {
     letterSpacing: '0.3px',
     minWidth: '100px',
     justifyContent: 'center',
+  },
+  commentSectionWrapper: {
+    width: '100%',
+    marginTop: '12px',
+  },
+  commentsPanelFixed: {
+    position: 'static',
+    top: 0,
+    right: 0,
+    width: 520,
+    maxWidth: '90vw',
+    height: '90vh',
+    marginTop: '3vh',
+    background: '#fafbfc',
+    boxShadow: '0 4px 24px rgba(30,32,44,0.08)',
+    borderTopLeftRadius: 22,
+    borderBottomLeftRadius: 22,
+    borderTopRightRadius: 22,
+    borderBottomRightRadius: 22,
+    display: 'flex',
+    flexDirection: 'column',
+    zIndex: 1000,
+    animation: 'slideInRight 0.25s cubic-bezier(.4,1.3,.6,1) 1',
+    border: 'none',
+  },
+  commentsPanelHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 18px 6px 18px',
+    background: 'transparent',
+    borderTopLeftRadius: 22,
+    borderBottom: 'none',
+    minHeight: 36,
+  },
+  closeButton: {
+    background: 'none',
+    border: 'none',
+    fontSize: 20,
+    color: '#888',
+    cursor: 'pointer',
+    padding: 2,
+    borderRadius: 6,
+    transition: 'background 0.15s',
+    lineHeight: 1,
+    minWidth: 28,
+    minHeight: 28,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  commentsPanelContent: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '0 0 0 0',
+    background: 'transparent',
+    borderBottomLeftRadius: 22,
   },
 };

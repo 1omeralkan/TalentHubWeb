@@ -22,6 +22,7 @@ model User {
   followers    Follow[] @relation("following")
   following    Follow[] @relation("follower")
   likes     Like[] // Kullanıcının beğenileri
+  dislikes  Dislike[] // Kullanıcının beğenmedikleri
   comments  Comment[] // Kullanıcının yaptığı yorumlar
   commentLikes CommentLike[] // Kullanıcının beğendiği yorumlar
 }
@@ -35,6 +36,7 @@ model Upload {
   createdAt DateTime @default(now())
   analysis  Json?    // <-- Analiz sonucu için yeni alan
   likes     Like[]   // Postun beğenileri
+  dislikes  Dislike[] // Postun beğenmeme ilişkisi
   comments  Comment[] // Postun yorumları
 }
 
@@ -87,4 +89,15 @@ model CommentLike {
   createdAt DateTime @default(now())
 
   @@unique([userId, commentId]) // Bir kullanıcı bir yorumu bir kez beğenebilir
+}
+
+model Dislike {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  upload    Upload   @relation(fields: [uploadId], references: [id])
+  uploadId  Int
+  createdAt DateTime @default(now())
+
+  @@unique([userId, uploadId]) // Bir kullanıcı bir postu bir kez dislike edebilir
 }

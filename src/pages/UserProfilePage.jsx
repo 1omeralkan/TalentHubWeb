@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaUser, FaEllipsisV } from "react-icons/fa";
 import LikeCount from "../ui/LikeCount";
+import DislikeCount from "../ui/DislikeCount";
+import CommentCount from "../ui/CommentCount";
 
 const UserProfilePage = () => {
   const { userId } = useParams();
@@ -62,7 +64,11 @@ const UserProfilePage = () => {
                 )}
                 <div style={styles.caption}>{item.caption}</div>
                 <div style={styles.date}>{item.createdAt ? new Date(item.createdAt).toLocaleString() : ""}</div>
-                <LikeCount uploadId={item.id} />
+                <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: 16, marginTop: 8 }}>
+                  <LikeCount uploadId={item.id} />
+                  <DislikeCount uploadId={item.id} />
+                  <CommentCount uploadId={item.id} />
+                </div>
               </div>
             ))}
           </div>
