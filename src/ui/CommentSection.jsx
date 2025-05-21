@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { FaThumbsUp, FaThumbsDown } from "react-icons/fa";
 
 const API_URL = "http://localhost:5000/api/comments";
 const LIKE_API_URL = "http://localhost:5000/api/comment-likes";
+const DISLIKE_API_URL = "http://localhost:5000/api/comment-dislikes";
 
 // User ve Comment objesi yapısı (TypeScript değil, açıklama amaçlı)
 // User: { id, userName?, fullName?, profilePhotoUrl? }
 // Comment: { id, content, createdAt, user, replies, parentId? }
 
-const LikeButton = ({ commentId, currentUser }) => {
-  const [liked, setLiked] = useState(false);
-  const [count, setCount] = useState(0);
+const LikeButton = ({ commentId, currentUser, liked, setLiked, disliked, setDisliked, likeCount, setLikeCount, dislikeCount, setDislikeCount }) => {
   const [loading, setLoading] = useState(false);
 
   // Beğeni sayısı ve kullanıcının beğenip beğenmediğini getir
@@ -21,13 +22,13 @@ const LikeButton = ({ commentId, currentUser }) => {
         currentUser ? fetch(`${LIKE_API_URL}/${commentId}/is-liked`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve({ json: () => ({ liked: false }) })
       ]);
       const countData = await countRes.json();
-      setCount(countData.count || 0);
+      setLikeCount(countData.count || 0);
       if (currentUser) {
         const likedData = await likedRes.json();
         setLiked(!!likedData.liked);
       }
     } catch (err) {
-      // ignore
+      console.error("Like veri çekme hatası:", err);
     }
   };
 
@@ -46,11 +47,31 @@ const LikeButton = ({ commentId, currentUser }) => {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
       const data = await res.json();
+      console.log("Like response:", data);
+      
+      // Like durumunu güncelle
       setLiked(data.liked);
-      setCount(prev => data.liked ? prev + 1 : prev - 1);
+      setDisliked(data.disliked);
+      
+      // Sayıları güncelle
+      if (data.liked) {
+        // Like eklendi, dislike varsa azalt
+        setLikeCount(prev => prev + 1);
+        if (disliked) {
+          setDislikeCount(prev => prev - 1);
+        }
+      } else {
+        // Like kaldırıldı
+        setLikeCount(prev => prev - 1);
+      }
     } catch (err) {
-      // ignore
+      console.error("Like toggle hatası:", err);
     } finally {
       setLoading(false);
     }
@@ -70,12 +91,107 @@ const LikeButton = ({ commentId, currentUser }) => {
         gap: 4,
         fontWeight: 600,
         fontSize: 15,
-        marginRight: 8
+        marginRight: 8,
+        opacity: loading ? 0.7 : 1,
+        transition: 'all 0.2s'
       }}
       title={currentUser ? (liked ? "Beğenmekten vazgeç" : "Beğen") : "Giriş yapmalısın"}
     >
-      <span style={{ fontSize: 18, marginRight: 2 }}>{liked ? "❤️" : "🤍"}</span>
-      <span>{count}</span>
+      <FaThumbsUp style={{ fontSize: 18, marginRight: 2, color: liked ? "#e11d48" : "#888", transition: 'color 0.18s' }} />
+      <span>{likeCount}</span>
+    </button>
+  );
+};
+
+const DislikeButton = ({ commentId, currentUser, liked, setLiked, disliked, setDisliked, likeCount, setLikeCount, dislikeCount, setDislikeCount }) => {
+  const [loading, setLoading] = useState(false);
+
+  // Dislike sayısı ve kullanıcının dislike edip etmediğini getir
+  const fetchDislikeData = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const [countRes, dislikedRes] = await Promise.all([
+        fetch(`${DISLIKE_API_URL}/${commentId}/count`),
+        currentUser ? fetch(`${DISLIKE_API_URL}/${commentId}/is-disliked`, { headers: { Authorization: `Bearer ${token}` } }) : Promise.resolve({ json: () => ({ disliked: false }) })
+      ]);
+      const countData = await countRes.json();
+      setDislikeCount(countData.count || 0);
+      if (currentUser) {
+        const dislikedData = await dislikedRes.json();
+        setDisliked(!!dislikedData.disliked);
+      }
+    } catch (err) {
+      console.error("Dislike veri çekme hatası:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchDislikeData();
+    // eslint-disable-next-line
+  }, [commentId, currentUser]);
+
+  // Dislike toggle
+  const handleToggleDislike = async () => {
+    if (!currentUser) return;
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`${DISLIKE_API_URL}/${commentId}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      
+      const data = await res.json();
+      console.log("Dislike response:", data);
+      
+      // Dislike durumunu güncelle
+      setDisliked(data.disliked);
+      setLiked(data.liked);
+      
+      // Sayıları güncelle
+      if (data.disliked) {
+        // Dislike eklendi, like varsa azalt
+        setDislikeCount(prev => prev + 1);
+        if (liked) {
+          setLikeCount(prev => prev - 1);
+        }
+      } else {
+        // Dislike kaldırıldı
+        setDislikeCount(prev => prev - 1);
+      }
+    } catch (err) {
+      console.error("Dislike toggle hatası:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleToggleDislike}
+      disabled={loading || !currentUser}
+      style={{
+        background: "none",
+        border: "none",
+        color: disliked ? "#e11d48" : "#888",
+        cursor: currentUser ? "pointer" : "not-allowed",
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        fontWeight: 600,
+        fontSize: 15,
+        marginRight: 8,
+        opacity: loading ? 0.7 : 1,
+        transition: 'all 0.2s'
+      }}
+      title={currentUser ? (disliked ? "Beğenmemekten vazgeç" : "Beğenmedim") : "Giriş yapmalısın"}
+    >
+      <FaThumbsDown style={{ fontSize: 18, marginRight: 2, color: disliked ? "#e11d48" : "#888", transition: 'color 0.18s' }} />
+      <span>{dislikeCount}</span>
     </button>
   );
 };
@@ -133,6 +249,10 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
   const [editContent, setEditContent] = useState(comment.content);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
+  const [liked, setLiked] = useState(false);
+  const [disliked, setDisliked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [dislikeCount, setDislikeCount] = useState(0);
 
   const handleDelete = async () => {
     if (!showDeleteConfirm) {
@@ -225,11 +345,80 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
     <div style={commentBoxStyle(!!comment.parentId)}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 }}>
         <div>
-          <span style={userInfoStyle}>@{comment.user?.userName || comment.user?.fullName || "Kullanıcı"}</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {comment.user?.profilePhotoUrl ? (
+              <Link to={`/profile/${comment.user.id}`} style={{ display: 'inline-block' }}>
+                <img
+                  src={`http://localhost:5000${comment.user.profilePhotoUrl}`}
+                  alt={comment.user.userName}
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    objectFit: 'cover',
+                    border: '1.2px solid #e0e7ff',
+                    background: '#f3e8ff',
+                    marginRight: 2,
+                    boxShadow: '0 1px 3px #e0e7ff44',
+                    transition: 'box-shadow 0.18s',
+                    cursor: 'pointer',
+                  }}
+                />
+              </Link>
+            ) : (
+              <Link to={`/profile/${comment.user.id}`} style={{ display: 'inline-block' }}>
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: '50%',
+                    background: '#f3e8ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 700,
+                    color: '#6366f1',
+                    fontSize: 15,
+                    marginRight: 2,
+                    border: '1.2px solid #e0e7ff',
+                    boxShadow: '0 1px 3px #e0e7ff44',
+                    transition: 'box-shadow 0.18s',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {comment.user?.userName?.[0]?.toUpperCase() || 'K'}
+                </div>
+              </Link>
+            )}
+            <span style={userInfoStyle}>@{comment.user?.userName || comment.user?.fullName || "Kullanıcı"}</span>
+          </span>
           <span style={dateStyle}>{new Date(comment.createdAt).toLocaleString("tr-TR")}</span>
         </div>
         <div style={actionBarStyle}>
-          <LikeButton commentId={comment.id} currentUser={currentUser} />
+          <LikeButton 
+            commentId={comment.id} 
+            currentUser={currentUser} 
+            liked={liked} 
+            setLiked={setLiked}
+            disliked={disliked}
+            setDisliked={setDisliked}
+            likeCount={likeCount}
+            setLikeCount={setLikeCount}
+            dislikeCount={dislikeCount}
+            setDislikeCount={setDislikeCount}
+          />
+          <DislikeButton 
+            commentId={comment.id} 
+            currentUser={currentUser} 
+            liked={liked} 
+            setLiked={setLiked} 
+            disliked={disliked} 
+            setDisliked={setDisliked}
+            likeCount={likeCount}
+            setLikeCount={setLikeCount}
+            dislikeCount={dislikeCount}
+            setDislikeCount={setDislikeCount}
+          />
           {/* Üç nokta menüsü */}
           <div style={{ position: 'relative' }}>
             <button

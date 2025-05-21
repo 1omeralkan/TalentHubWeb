@@ -95,12 +95,26 @@ const toggleLike = async (req, res) => {
         },
       },
     });
+
+    // Eğer dislike varsa kaldır
+    const existingDislike = await prisma.dislike.findUnique({
+      where: {
+        userId_uploadId: {
+          userId,
+          uploadId,
+        },
+      },
+    });
+    if (existingDislike) {
+      await prisma.dislike.delete({ where: { id: existingDislike.id } });
+    }
+
     if (existingLike) {
       // Beğeniyi kaldır (unlike)
       await prisma.like.delete({
         where: { id: existingLike.id },
       });
-      return res.status(200).json({ liked: false });
+      return res.status(200).json({ liked: false, disliked: false });
     } else {
       // Beğeni ekle
       await prisma.like.create({
@@ -109,7 +123,7 @@ const toggleLike = async (req, res) => {
           uploadId,
         },
       });
-      return res.status(200).json({ liked: true });
+      return res.status(200).json({ liked: true, disliked: false });
     }
   } catch (err) {
     console.error("Beğeni hatası:", err);

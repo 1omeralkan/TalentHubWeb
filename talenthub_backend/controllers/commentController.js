@@ -192,9 +192,41 @@ const updateComment = async (req, res) => {
   }
 };
 
+// Bir videoya yorum yapan benzersiz kullanıcıları getir
+const getCommenters = async (req, res) => {
+  const uploadId = Number(req.params.uploadId);
+  try {
+    // Tüm yorumları getir (ana yorumlar ve yanıtlar dahil)
+    const comments = await prisma.comment.findMany({
+      where: { uploadId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            userName: true,
+            fullName: true,
+            profilePhotoUrl: true,
+          },
+        },
+      },
+    });
+
+    // Benzersiz kullanıcıları bul (userId'ye göre)
+    const uniqueUsers = Array.from(
+      new Map(comments.map(comment => [comment.user.id, comment.user])).values()
+    );
+
+    res.status(200).json({ users: uniqueUsers });
+  } catch (err) {
+    console.error("Yorum yapanlar listesi hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
 module.exports = {
   createComment,
   getCommentsByUpload,
   deleteComment,
   updateComment,
+  getCommenters,
 }; 

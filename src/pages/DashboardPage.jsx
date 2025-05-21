@@ -266,6 +266,50 @@ const DashboardPage = () => {
               </div>
               <div style={styles.tiktokInfoBoxPro}>
                 <div style={styles.userInfoContainer}>
+                  {videoItems[activeIndex].user?.profilePhotoUrl ? (
+                    <Link to={`/profile/${videoItems[activeIndex].user.id}`} style={{ display: 'inline-block' }}>
+                      <img
+                        src={`http://localhost:5000${videoItems[activeIndex].user.profilePhotoUrl}`}
+                        alt={videoItems[activeIndex].user.userName}
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          objectFit: 'cover',
+                          border: '1.5px solid #e0e7ff',
+                          background: '#f3e8ff',
+                          marginRight: 4,
+                          boxShadow: '0 1px 4px #e0e7ff55',
+                          transition: 'box-shadow 0.18s',
+                          cursor: 'pointer',
+                        }}
+                      />
+                    </Link>
+                  ) : (
+                    <Link to={`/profile/${videoItems[activeIndex].user.id}`} style={{ display: 'inline-block' }}>
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          background: '#f3e8ff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontWeight: 700,
+                          color: '#a21caf',
+                          fontSize: 18,
+                          marginRight: 4,
+                          border: '1.5px solid #e0e7ff',
+                          boxShadow: '0 1px 4px #e0e7ff55',
+                          transition: 'box-shadow 0.18s',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        {videoItems[activeIndex].user?.userName?.[0]?.toUpperCase() || 'K'}
+                      </div>
+                    </Link>
+                  )}
                   <span style={styles.infoUserPro}>@{videoItems[activeIndex].user?.userName || videoItems[activeIndex].user?.fullName || 'Kullanıcı'}</span>
                   <button 
                     onClick={() => handleFollow(videoItems[activeIndex].user?.id)}

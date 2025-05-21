@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FaThumbsDown } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -22,7 +23,7 @@ const DislikeCount = ({ uploadId }) => {
     try {
       const res = await fetch(`${API_BASE}/uploads/${uploadId}/dislikers`);
       const data = await res.json();
-      setDislikers(data.users || []);
+      setDislikers((data.users || []).filter(Boolean));
     } catch (err) {
       setDislikers([]);
     } finally {
@@ -47,13 +48,15 @@ const DislikeCount = ({ uploadId }) => {
             ) : (
               <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
                 {dislikers.map(user => (
-                  <li key={user.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3" }}>
-                    {user.profilePhotoUrl ? (
-                      <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid #eee" }} />
-                    ) : (
-                      <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#f3e8ff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, color: "#a21caf", fontSize: 17 }}>{user.userName?.[0]?.toUpperCase() || "K"}</div>
-                    )}
-                    <span style={{ fontWeight: 500, color: "#222", fontSize: 15 }}>@{user.userName || user.fullName || "Kullanıcı"}</span>
+                  <li key={user.id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 0", borderBottom: "1px solid #f3f3f3", cursor: "pointer" }}>
+                    <Link to={`/profile/${user.id}`} style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none', color: 'inherit', width: '100%' }}>
+                      {user.profilePhotoUrl ? (
+                        <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid #eee" }} />
+                      ) : (
+                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "#f3e8ff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 600, color: "#a21caf", fontSize: 17 }}>{user.userName?.[0]?.toUpperCase() || "K"}</div>
+                      )}
+                      <span style={{ fontWeight: 500, color: "#222", fontSize: 15 }}>@{user.userName || user.fullName || "Kullanıcı"}</span>
+                    </Link>
                   </li>
                 ))}
               </ul>

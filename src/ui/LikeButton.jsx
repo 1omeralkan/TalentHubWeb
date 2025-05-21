@@ -24,28 +24,33 @@ const LikeButton = ({ uploadId }) => {
   }
 
   // Beğeni ve beğenmeme sayısı + kullanıcı durumu çek
-  useEffect(() => {
-    setLiked(false);
-    setDisliked(false);
+  const fetchCountsAndStatus = async () => {
     if (!uploadId) return;
-    fetch(`${API_BASE}/uploads/${uploadId}/likes`)
-      .then(res => res.json())
-      .then(data => setLikeCount(data.count || 0));
-    fetch(`${API_BASE}/uploads/${uploadId}/dislikes`)
-      .then(res => res.json())
-      .then(data => setDislikeCount(data.count || 0));
+    // Like sayısı
+    const likeRes = await fetch(`${API_BASE}/uploads/${uploadId}/likes`);
+    const likeData = await likeRes.json();
+    setLikeCount(likeData.count || 0);
+    // Dislike sayısı
+    const dislikeRes = await fetch(`${API_BASE}/uploads/${uploadId}/dislikes`);
+    const dislikeData = await dislikeRes.json();
+    setDislikeCount(dislikeData.count || 0);
+    // Kullanıcı durumu
     if (userId) {
-      fetch(`${API_BASE}/uploads/${uploadId}/isLiked`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
-        .then(data => setLiked(!!data.liked));
-      fetch(`${API_BASE}/uploads/${uploadId}/isDisliked`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then(res => res.json())
-        .then(data => setDisliked(!!data.disliked));
+      const likedRes = await fetch(`${API_BASE}/uploads/${uploadId}/isLiked`, { headers: { Authorization: `Bearer ${token}` } });
+      const likedData = await likedRes.json();
+      setLiked(!!likedData.liked);
+      const dislikedRes = await fetch(`${API_BASE}/uploads/${uploadId}/isDisliked`, { headers: { Authorization: `Bearer ${token}` } });
+      const dislikedData = await dislikedRes.json();
+      setDisliked(!!dislikedData.disliked);
+    } else {
+      setLiked(false);
+      setDisliked(false);
     }
+  };
+
+  useEffect(() => {
+    fetchCountsAndStatus();
+    // eslint-disable-next-line
   }, [uploadId, token]);
 
   // Beğeni toggle
@@ -53,24 +58,14 @@ const LikeButton = ({ uploadId }) => {
     if (!userId || loading) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/uploads/${uploadId}/like`, {
+      await fetch(`${API_BASE}/uploads/${uploadId}/like`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      // Like aktifse dislike'ı kaldır
-      if (data.liked) {
-        setLiked(true);
-        setDisliked(false);
-        setLikeCount((c) => c + 1);
-        if (disliked) setDislikeCount((c) => Math.max(0, c - 1));
-      } else {
-        setLiked(false);
-        setLikeCount((c) => Math.max(0, c - 1));
-      }
+      await fetchCountsAndStatus();
     } catch (err) {
       // Hata yönetimi
     } finally {
@@ -83,24 +78,14 @@ const LikeButton = ({ uploadId }) => {
     if (!userId || loading) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE}/uploads/${uploadId}/dislike`, {
+      await fetch(`${API_BASE}/uploads/${uploadId}/dislike`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
-      const data = await res.json();
-      // Dislike aktifse like'ı kaldır
-      if (data.disliked) {
-        setDisliked(true);
-        setLiked(false);
-        setDislikeCount((c) => c + 1);
-        if (liked) setLikeCount((c) => Math.max(0, c - 1));
-      } else {
-        setDisliked(false);
-        setDislikeCount((c) => Math.max(0, c - 1));
-      }
+      await fetchCountsAndStatus();
     } catch (err) {
       // Hata yönetimi
     } finally {

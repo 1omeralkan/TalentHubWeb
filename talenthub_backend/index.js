@@ -11,6 +11,7 @@ const profileRoutes = require('./routes/profileRoutes');
 const followRoutes = require('./routes/followRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 const commentLikeRoutes = require('./routes/commentLikeRoutes');
+const commentDislikeRoutes = require('./routes/commentDislikeRoutes'); // Yeni route eklendi
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -29,6 +30,7 @@ app.use('/api', profileRoutes);
 app.use('/api/follow', followRoutes);
 app.use('/api/comments', commentRoutes);
 app.use('/api/comment-likes', commentLikeRoutes);
+app.use('/api/comment-dislikes', commentDislikeRoutes); // Yeni route eklendi
 app.get("/", (req, res) => {
   res.send("TalentHub Backend Çalışıyor!");
 });
