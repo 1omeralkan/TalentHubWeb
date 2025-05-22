@@ -294,6 +294,47 @@ const getDislikers = async (req, res) => {
   }
 };
 
+// Takip edilen kullanıcıların gönderilerini getir
+const getFollowingUploads = async (req, res) => {
+  const userId = req.user.userId;
+  try {
+    // Takip edilen kullanıcıların ID'lerini bul
+    const following = await prisma.follow.findMany({
+      where: { followerId: userId },
+      select: { followingId: true }
+    });
+    const followingIds = following.map(f => f.followingId);
+    if (followingIds.length === 0) return res.json([]);
+
+    // Takip edilenlerin uploadlarını çek
+    const uploads = await prisma.upload.findMany({
+      where: { userId: { in: followingIds } },
+      orderBy: { createdAt: 'desc' },
+      include: {
+        user: { select: { id: true, userName: true, fullName: true, profilePhotoUrl: true } },
+        likes: true,
+        dislikes: true,
+        comments: true
+      }
+    });
+    // Like/dislike/comment sayıları ile birlikte dön
+    const result = uploads.map(u => ({
+      id: u.id,
+      mediaUrl: u.mediaUrl,
+      caption: u.caption,
+      createdAt: u.createdAt,
+      user: u.user,
+      likeCount: u.likes.length,
+      dislikeCount: u.dislikes.length,
+      commentCount: u.comments.length
+    }));
+    res.json(result);
+  } catch (err) {
+    console.error("Takip edilenlerin gönderileri hatası:", err);
+    res.status(500).json({ message: "Sunucu hatası" });
+  }
+};
+
 module.exports = {
   uploadMedia,
   getUserUploads,
@@ -306,4 +347,5 @@ module.exports = {
   getDislikesCount,
   isPostDislikedByUser,
   getDislikers,
+  getFollowingUploads,
 };

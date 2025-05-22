@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH } from "react-icons/fa";
+import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH, FaCompass } from "react-icons/fa";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -78,9 +78,13 @@ const MainLayout = () => {
           )}
         </div>
         <div style={styles.sidebarMenu}>
-          <Link to="/dashboard" style={{ ...styles.sidebarItem, ...(isActive("/dashboard") && styles.activeItem) }}>
+          <Link to="/" style={{ ...styles.sidebarItem, ...(isActive("/") && styles.activeItem) }}>
             <FaHome style={styles.icon} />
-            <span>Sizin için</span>
+            <span>Ana Sayfa</span>
+          </Link>
+          <Link to="/dashboard" style={{ ...styles.sidebarItem, ...(isActive("/dashboard") && styles.activeItem) }}>
+            <FaCompass style={styles.icon} />
+            <span>Keşfet</span>
           </Link>
           <Link to="/profile" style={{ ...styles.sidebarItem, ...(isActive("/profile") && styles.activeItem) }}>
             <FaUser style={styles.icon} />

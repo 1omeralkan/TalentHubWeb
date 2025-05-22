@@ -13,6 +13,7 @@ const {
   getDislikesCount,
   isPostDislikedByUser,
   getDislikers,
+  getFollowingUploads,
 } = require("../controllers/uploadController");
 const verifyToken = require("../middleware/verifyToken");
 
@@ -50,5 +51,8 @@ router.post("/uploads/:id/dislike", verifyToken, toggleDislike);
 router.get("/uploads/:id/dislikes", getDislikesCount);
 router.get("/uploads/:id/isDisliked", verifyToken, isPostDislikedByUser);
 router.get("/uploads/:id/dislikers", getDislikers);
+
+// Takip edilenlerin gönderileri
+router.get("/uploads/following", verifyToken, getFollowingUploads);
 
 module.exports = router;
