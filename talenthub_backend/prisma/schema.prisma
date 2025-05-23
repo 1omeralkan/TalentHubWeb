@@ -16,6 +16,8 @@ model User {
   password  String
   bio       String?
   createdAt DateTime @default(now())
+  isOnline  Boolean  @default(false)
+  lastSeen  DateTime @default(now())
   uploads   Upload[]
   
   // Takip ilişkileri
@@ -26,6 +28,13 @@ model User {
   comments  Comment[] // Kullanıcının yaptığı yorumlar
   commentLikes CommentLike[] // Kullanıcının beğendiği yorumlar
   commentDislikes CommentDislike[] // Kullanıcının beğenmediği yorumlar
+
+  // Mesajlaşma ilişkileri
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+
+  // Sohbet ilişkisi
+  chatParticipants ChatParticipant[]
 }
 
 model Upload {
@@ -113,4 +122,46 @@ model CommentDislike {
   createdAt DateTime @default(now())
 
   @@unique([userId, commentId]) // Bir kullanıcı bir yorumu bir kez dislike edebilir
+}
+
+// Mesajlaşma modelleri
+model Message {
+  id        Int      @id @default(autoincrement())
+  content   String
+  createdAt DateTime @default(now())
+  isRead    Boolean  @default(false)
+  
+  // İlişkiler
+  sender    User     @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  Int
+  receiver  User     @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  receiverId Int
+  chat      Chat?    @relation(fields: [chatId], references: [id])
+  chatId    Int?
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@index([chatId])
+}
+
+model Chat {
+  id           Int               @id @default(autoincrement())
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  participants ChatParticipant[]
+  messages     Message[]
+}
+
+model ChatParticipant {
+  id      Int   @id @default(autoincrement())
+  user    User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId  Int
+  chat    Chat  @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId  Int
+  joinedAt DateTime @default(now())
+
+  @@unique([userId, chatId])
+  @@index([chatId])
+  @@index([userId])
 }

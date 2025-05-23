@@ -9,6 +9,9 @@ import EditProfilePage from "./pages/EditProfilePage";
 import MainLayout from "./layouts/MainLayout";
 import UserProfilePage from "./pages/UserProfilePage";
 import HomePage from "./pages/HomePage";
+import MessagesPage from "./pages/MessagesPage";
+import NewMessagePage from "./pages/NewMessagePage";
+import ChatPage from "./pages/ChatPage";
 
 function App() {
   return (
@@ -19,11 +22,14 @@ function App() {
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route element={<MainLayout />}>
           <Route path="/" element={<HomePage />} />
-        <Route path="/dashboard" element={<DashboardPage />} /> 
-        <Route path="/upload" element={<UploadPage />} />
-        <Route path="/profile" element={<ProfilPage />} />
-        <Route path="/edit-profile" element={<EditProfilePage />} />
-        <Route path="/profile/:userId" element={<UserProfilePage />} />
+          <Route path="/dashboard" element={<DashboardPage />} /> 
+          <Route path="/upload" element={<UploadPage />} />
+          <Route path="/profile" element={<ProfilPage />} />
+          <Route path="/edit-profile" element={<EditProfilePage />} />
+          <Route path="/profile/:userId" element={<UserProfilePage />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/new-message" element={<NewMessagePage />} />
+          <Route path="/chat/:userId" element={<ChatPage />} />
         </Route>
       </Routes>
     </Router>

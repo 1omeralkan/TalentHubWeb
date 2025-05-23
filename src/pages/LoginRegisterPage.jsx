@@ -48,7 +48,7 @@ const LoginRegisterPage = () => {
     setIsLoading(true);
     try {
       if (isLogin) {
-        const res = await fetch("http://localhost:5000/api/login", {
+        const res = await fetch("http://localhost:5000/api/auth/login", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: form.email, password: form.password }),
@@ -61,7 +61,7 @@ const LoginRegisterPage = () => {
           setError(data.message || "Giriş başarısız!");
         }
       } else {
-        const res = await fetch("http://localhost:5000/api/register", {
+        const res = await fetch("http://localhost:5000/api/auth/register", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(form),

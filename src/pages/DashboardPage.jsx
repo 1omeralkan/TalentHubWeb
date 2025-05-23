@@ -18,6 +18,10 @@ const DashboardPage = () => {
   const [followLoading, setFollowLoading] = useState(false);
   const [commentCount, setCommentCount] = useState(0);
   const [showCommentsPanel, setShowCommentsPanel] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [followingList, setFollowingList] = useState([]);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -189,6 +193,49 @@ const DashboardPage = () => {
     }
   };
 
+  const handleOpenShareModal = async () => {
+    setShowShareModal(true);
+    setShareSuccess(null);
+    setShareLoading(false);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/follow/following/${user.userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setFollowingList(data);
+    } catch (err) {
+      setFollowingList([]);
+    }
+  };
+
+  const handleShareToUser = async (targetUserId) => {
+    setShareLoading(true);
+    setShareSuccess(null);
+    try {
+      const token = localStorage.getItem('token');
+      const currentVideo = videoItems[activeIndex];
+      const content = `@${user.userName} bir gönderi paylaştı: http://localhost:3000/post/${currentVideo.id}`;
+      const res = await fetch('http://localhost:5000/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ receiverId: targetUserId, content })
+      });
+      if (res.ok) {
+        setShareSuccess('Gönderi başarıyla paylaşıldı!');
+      } else {
+        setShareSuccess('Paylaşım başarısız!');
+      }
+    } catch (err) {
+      setShareSuccess('Paylaşım başarısız!');
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
   return (
     <div style={{
       ...styles.tiktokMainArea,
@@ -259,7 +306,7 @@ const DashboardPage = () => {
                       e.currentTarget.querySelector('span').style.color = '#bbb';
                     }}
                   >
-                    <FaShare style={{ ...styles.actionIcon }} />
+                    <FaShare style={{ ...styles.actionIcon }} onClick={handleOpenShareModal} />
                     <span style={{ ...styles.actionCount }}>7</span>
                   </div>
                 </div>
@@ -364,6 +411,28 @@ const DashboardPage = () => {
               </div>
               <div style={styles.commentsPanelContent}>
                 <CommentSection uploadId={videoItems[activeIndex].id} currentUser={user} hideTitle />
+              </div>
+            </div>
+          )}
+          {showShareModal && (
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(30,30,30,0.18)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ background: '#fff', borderRadius: 16, padding: 28, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 32px #6366f155', position: 'relative' }}>
+                <button onClick={() => setShowShareModal(false)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', fontSize: 22, color: '#bbb', cursor: 'pointer', borderRadius: 6 }}>×</button>
+                <h3 style={{ fontWeight: 700, fontSize: 20, color: '#4f46e5', marginBottom: 18 }}>Gönderiyi Paylaş</h3>
+                {followingList.length === 0 ? (
+                  <div style={{ color: '#888', fontSize: 16, textAlign: 'center', margin: '24px 0' }}>Takip ettiğin kimse yok.</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                    {followingList.map(f => (
+                      <button key={f.id} onClick={() => handleShareToUser(f.id)} disabled={shareLoading} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f3f4f6', cursor: 'pointer', fontWeight: 600, fontSize: 16, color: '#23223b', transition: 'background 0.18s', opacity: shareLoading ? 0.7 : 1 }}>
+                        {f.profilePhotoUrl ? <img src={`http://localhost:5000${f.profilePhotoUrl}`} alt={f.userName} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#6366f1', fontSize: 17 }}>{f.userName?.[0]?.toUpperCase() || 'K'}</span>}
+                        <span>@{f.userName}</span>
+                        <span style={{ color: '#6b7280', fontWeight: 400, fontSize: 15 }}>{f.fullName}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {shareSuccess && <div style={{ marginTop: 18, color: shareSuccess.includes('başarı') ? '#22c55e' : '#e11d48', fontWeight: 600, textAlign: 'center' }}>{shareSuccess}</div>}
               </div>
             </div>
           )}
