@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { sendMessage, getUserMessages, getRecentChats, deleteMessageForMe, deleteMessageForAll } = require('../controllers/messageController');
+const { sendMessage, getUserMessages, getRecentChats, deleteMessageForMe, deleteMessageForAll, deleteChatForMe } = require('../controllers/messageController');
 const verifyToken = require('../middleware/verifyToken');
 
 // Tüm route'lar için verifyToken middleware'ini kullan
@@ -20,5 +20,8 @@ router.delete('/messages/:messageId/forme', deleteMessageForMe);
 
 // Mesajı herkesten sil (Herkesten Sil)
 router.delete('/messages/:messageId/forall', deleteMessageForAll);
+
+// Sohbeti sadece kendinden sil (Benden Sil)
+router.delete('/chats/:chatId/forme', deleteChatForMe);
 
 module.exports = router; 

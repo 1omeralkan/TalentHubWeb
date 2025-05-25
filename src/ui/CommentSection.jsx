@@ -84,20 +84,20 @@ const LikeButton = ({ commentId, currentUser, liked, setLiked, disliked, setDisl
       style={{
         background: "none",
         border: "none",
-        color: liked ? "#e11d48" : "#888",
+        color: liked ? "#64FFDA" : "#888",
         cursor: currentUser ? "pointer" : "not-allowed",
         display: "flex",
         alignItems: "center",
         gap: 4,
-        fontWeight: 600,
-        fontSize: 15,
+        fontWeight: 700,
+        fontSize: 16,
         marginRight: 8,
         opacity: loading ? 0.7 : 1,
         transition: 'all 0.2s'
       }}
       title={currentUser ? (liked ? "Beğenmekten vazgeç" : "Beğen") : "Giriş yapmalısın"}
     >
-      <FaThumbsUp style={{ fontSize: 18, marginRight: 2, color: liked ? "#e11d48" : "#888", transition: 'color 0.18s' }} />
+      <FaThumbsUp style={{ fontSize: 20, marginRight: 2, color: liked ? "#64FFDA" : "#888", filter: liked ? 'drop-shadow(0 2px 8px #64FFDA88)' : 'none', transition: 'color 0.18s, filter 0.18s' }} />
       <span>{likeCount}</span>
     </button>
   );
@@ -177,20 +177,20 @@ const DislikeButton = ({ commentId, currentUser, liked, setLiked, disliked, setD
       style={{
         background: "none",
         border: "none",
-        color: disliked ? "#e11d48" : "#888",
+        color: disliked ? "#a21caf" : "#888",
         cursor: currentUser ? "pointer" : "not-allowed",
         display: "flex",
         alignItems: "center",
         gap: 4,
-        fontWeight: 600,
-        fontSize: 15,
+        fontWeight: 700,
+        fontSize: 16,
         marginRight: 8,
         opacity: loading ? 0.7 : 1,
         transition: 'all 0.2s'
       }}
       title={currentUser ? (disliked ? "Beğenmemekten vazgeç" : "Beğenmedim") : "Giriş yapmalısın"}
     >
-      <FaThumbsDown style={{ fontSize: 18, marginRight: 2, color: disliked ? "#e11d48" : "#888", transition: 'color 0.18s' }} />
+      <FaThumbsDown style={{ fontSize: 20, marginRight: 2, color: disliked ? "#a21caf" : "#888", filter: disliked ? 'drop-shadow(0 2px 8px #a21caf88)' : 'none', transition: 'color 0.18s, filter 0.18s' }} />
       <span>{dislikeCount}</span>
     </button>
   );
@@ -198,29 +198,34 @@ const DislikeButton = ({ commentId, currentUser, liked, setLiked, disliked, setD
 
 const commentBoxStyle = (isReply) => ({
   marginBottom: 14,
-  padding: isReply ? '10px 16px' : '14px 18px',
-  background: isReply ? '#f6f8fa' : '#fff',
-  borderRadius: 12,
-  boxShadow: isReply ? 'none' : '0 2px 12px rgba(99,102,241,0.07)',
-  border: isReply ? '1px solid #e5e7eb' : '1.5px solid #e0e7ff',
+  background: isReply ? '#192B3F' : '#233554',
+  borderRadius: 16,
+  boxShadow: isReply ? '0 1px 4px #64FFDA11' : '0 2px 12px #64FFDA22',
+  padding: isReply ? '12px 18px 10px 38px' : '16px 22px 12px 22px',
+  border: isReply ? '1.5px solid #233554' : '2px solid #64FFDA22',
+  color: '#E6F1FF',
   position: 'relative',
-  transition: 'box-shadow 0.2s',
-  minHeight: 56,
+  minWidth: 0,
+  width: '100%',
+  transition: 'box-shadow 0.18s, border 0.18s',
 });
 
 const userInfoStyle = {
-  fontWeight: 600,
-  fontSize: 15,
-  color: '#4f46e5',
+  fontWeight: 700,
+  fontSize: 16,
+  color: '#64FFDA',
   display: 'inline-block',
   marginRight: 8,
+  letterSpacing: 0.1,
+  textDecoration: 'none',
 };
 
 const dateStyle = {
-  color: '#888',
-  fontSize: 12,
-  marginLeft: 2,
-  fontWeight: 400,
+  color: '#b0b3c6',
+  fontSize: 13,
+  fontWeight: 500,
+  marginLeft: 6,
+  letterSpacing: 0.1,
 };
 
 const actionBarStyle = {
@@ -231,15 +236,54 @@ const actionBarStyle = {
 };
 
 const replyBtnStyle = {
-  fontSize: 13,
-  color: '#6366f1',
+  color: '#4f46e5',
+  fontWeight: 600,
+  fontSize: 15,
   background: 'none',
   border: 'none',
   cursor: 'pointer',
-  marginTop: 6,
-  fontWeight: 500,
-  padding: 0,
+  marginLeft: 8,
   transition: 'color 0.18s',
+};
+
+const menuBtnStyle = {
+  background: 'none',
+  border: 'none',
+  color: '#bbb',
+  fontSize: 20,
+  cursor: 'pointer',
+  marginLeft: 8,
+  borderRadius: 6,
+  transition: 'color 0.18s',
+};
+
+const inputBoxStyle = {
+  background: '#192B3F',
+  color: '#E6F1FF',
+  border: '2px solid #64FFDA44',
+  borderRadius: 12,
+  padding: '0.85rem 1.2rem',
+  fontSize: '1.08rem',
+  marginTop: 8,
+  marginBottom: 0,
+  width: '100%',
+  outline: 'none',
+  boxShadow: '0 1px 4px #64FFDA11',
+  transition: 'border 0.18s, box-shadow 0.18s',
+};
+
+const sendBtnStyle = {
+  background: 'linear-gradient(90deg, #64FFDA 0%, #4f46e5 100%)',
+  color: '#fff',
+  border: 'none',
+  borderRadius: 10,
+  padding: '0.7rem 1.6rem',
+  fontWeight: 700,
+  fontSize: '1.08rem',
+  cursor: 'pointer',
+  marginLeft: 8,
+  boxShadow: '0 2px 8px #64FFDA22',
+  transition: 'background 0.18s, box-shadow 0.18s',
 };
 
 const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, setReplyContent, setReplyTo, handleAddReply, loading, onDelete }) => {
@@ -423,15 +467,7 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
           <div style={{ position: 'relative' }}>
             <button
               onClick={handleMenuClick}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: '#888',
-                cursor: 'pointer',
-                fontSize: 18,
-                padding: '0 4px',
-                lineHeight: 1
-              }}
+              style={menuBtnStyle}
               title="Daha fazla"
               tabIndex={0}
             >
@@ -549,7 +585,7 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
         </form>
       ) : (
         <>
-          <div style={{ marginTop: 2, fontSize: 15, color: '#23223b', fontWeight: 500, whiteSpace: 'pre-line' }}>{comment.content}</div>
+          <div style={{ marginTop: 2, fontSize: 15, color: '#fff', fontWeight: 500, whiteSpace: 'pre-line' }}>{comment.content}</div>
           {currentUser && (
             <button 
               style={replyBtnStyle}
@@ -603,6 +639,17 @@ const ReplyThread = ({ comment, currentUser, onReply, replyTo, replyContent, set
       )}
     </div>
   );
+};
+
+const commentSectionOuterStyle = {
+  marginTop: 24,
+  width: "100%",
+  maxWidth: 480,
+  background: 'linear-gradient(135deg, #112240 80%, #233554 100%)',
+  borderRadius: 20,
+  boxShadow: '0 2px 24px #64FFDA22',
+  padding: '22px 28px',
+  border: '2px solid #233554',
 };
 
 const CommentSection = ({ uploadId, currentUser, hideTitle = false }) => {
@@ -703,15 +750,15 @@ const CommentSection = ({ uploadId, currentUser, hideTitle = false }) => {
   };
 
   return (
-    <div style={{ marginTop: 24, width: "100%", maxWidth: 440, background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 16px rgba(99,102,241,0.06)', padding: '18px 22px' }}>
+    <div style={commentSectionOuterStyle}>
       {!hideTitle && (
-        <h3 style={{ fontWeight: 700, fontSize: 20, marginBottom: 14, color: '#23223b', letterSpacing: 0.2 }}>Yorumlar</h3>
+        <h3 style={{ fontWeight: 800, fontSize: 22, marginBottom: 14, color: '#64FFDA', letterSpacing: 0.2, textShadow: '0 2px 8px #0A192F44' }}>Yorumlar</h3>
       )}
-      {loading && <div>Yükleniyor...</div>}
+      {loading && <div style={{ color: '#64FFDA', fontWeight: 600 }}>Yükleniyor...</div>}
       {error && <div style={{ color: "#e11d48", fontWeight: 500 }}>{error}</div>}
       <div style={{ maxHeight: 320, overflowY: "auto", marginBottom: 14, paddingRight: 4 }}>
         {comments.length === 0 ? (
-          <div style={{ color: '#888', fontSize: 15, fontWeight: 500 }}>Henüz yorum yok.</div>
+          <div style={{ color: '#b0b3c6', fontSize: 15, fontWeight: 500 }}>Henüz yorum yok.</div>
         ) : (
           comments.map((comment) => (
             <ReplyThread
@@ -737,15 +784,15 @@ const CommentSection = ({ uploadId, currentUser, hideTitle = false }) => {
             value={newComment}
             onChange={e => setNewComment(e.target.value)}
             placeholder="Yorum ekle..."
-            style={{ flex: 1, padding: 10, borderRadius: 8, border: "1.5px solid #c7d2fe", fontSize: 15, background: '#fff', fontWeight: 500 }}
+            style={inputBoxStyle}
             disabled={loading}
           />
-          <button type="submit" disabled={loading || !newComment.trim()} style={{ padding: "10px 20px", borderRadius: 8, background: "#6366f1", color: "#fff", border: "none", fontWeight: 700, fontSize: 15, letterSpacing: 0.2, boxShadow: '0 1px 4px rgba(99,102,241,0.08)' }}>
+          <button type="submit" disabled={loading || !newComment.trim()} style={sendBtnStyle}>
             Gönder
           </button>
         </form>
       )}
-      {!currentUser && <div style={{ color: "#888", fontSize: 14, marginTop: 8 }}>Yorum yapmak için giriş yap.</div>}
+      {!currentUser && <div style={{ color: "#b0b3c6", fontSize: 14, marginTop: 8 }}>Yorum yapmak için giriş yap.</div>}
     </div>
   );
 };

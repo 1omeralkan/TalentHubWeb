@@ -36,6 +36,7 @@ model User {
   // Sohbet ilişkisi
   chatParticipants ChatParticipant[]
   messageDeletes MessageDelete[] @relation("UserMessageDeletes")
+  chatDeletes ChatDelete[]
 }
 
 model Upload {
@@ -153,6 +154,7 @@ model Chat {
   updatedAt    DateTime          @updatedAt
   participants ChatParticipant[]
   messages     Message[]
+  deletedBy    ChatDelete[]
 }
 
 model ChatParticipant {
@@ -179,4 +181,17 @@ model MessageDelete {
   @@unique([userId, messageId]) // Bir kullanıcı bir mesajı bir kez silebilir
   @@index([userId])
   @@index([messageId])
+}
+
+model ChatDelete {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    Int
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId    Int
+  deletedAt DateTime @default(now())
+
+  @@unique([userId, chatId])
+  @@index([userId])
+  @@index([chatId])
 }

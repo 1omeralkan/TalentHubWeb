@@ -255,21 +255,21 @@ const ChatPage = () => {
               onMouseLeave={() => setOpenMenuId(null)}
             >
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={styles.messageContent}>
-                  {shareData ? (
-                    <div style={{
+              <div style={styles.messageContent}>
+                {shareData ? (
+                  <div style={{
                       display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 180, maxWidth: 260, background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 12px rgba(99,102,241,0.08)', padding: '14px 12px 10px 12px', margin: '0 auto',
-                    }}>
-                      {shareData.thumbnailUrl && (shareData.thumbnailUrl.endsWith('.mp4') || shareData.thumbnailUrl.endsWith('.webm')) ? (
-                        <video src={`http://localhost:5000${shareData.thumbnailUrl}`} style={{ width: '100%', maxWidth: 180, borderRadius: 12, background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} controls />
-                      ) : shareData.thumbnailUrl ? (
-                        <img src={`http://localhost:5000${shareData.thumbnailUrl}`} alt="thumbnail" style={{ width: '100%', maxWidth: 180, borderRadius: 12, objectFit: 'cover', background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} />
-                      ) : null}
-                      <div style={{ fontWeight: 500, color: '#23223b', fontSize: 14, marginBottom: 2, textAlign: 'center', width: '100%', wordBreak: 'break-word', letterSpacing: 0.1 }}>{shareData.caption}</div>
-                    </div>
-                  ) : (
-                    message.content
-                  )}
+                  }}>
+                    {shareData.thumbnailUrl && (shareData.thumbnailUrl.endsWith('.mp4') || shareData.thumbnailUrl.endsWith('.webm')) ? (
+                      <video src={`http://localhost:5000${shareData.thumbnailUrl}`} style={{ width: '100%', maxWidth: 180, borderRadius: 12, background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} controls />
+                    ) : shareData.thumbnailUrl ? (
+                      <img src={`http://localhost:5000${shareData.thumbnailUrl}`} alt="thumbnail" style={{ width: '100%', maxWidth: 180, borderRadius: 12, objectFit: 'cover', background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} />
+                    ) : null}
+                    <div style={{ fontWeight: 500, color: '#23223b', fontSize: 14, marginBottom: 2, textAlign: 'center', width: '100%', wordBreak: 'break-word', letterSpacing: 0.1 }}>{shareData.caption}</div>
+                  </div>
+                ) : (
+                  message.content
+                )}
                 </div>
                 <div style={{ position: 'relative', marginLeft: 8 }}>
                   <button
@@ -364,154 +364,183 @@ const ChatPage = () => {
 const styles = {
   container: {
     width: '100%',
-    maxWidth: '800px',
+    maxWidth: '900px',
     margin: '0 auto',
-    height: 'calc(100vh - 4rem)',
+    height: 'calc(100vh - 2.5rem)',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#fff',
-    borderRadius: '12px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+    background: 'linear-gradient(135deg, #0A192F 70%, #112240 100%)',
+    borderRadius: '22px',
+    boxShadow: '0 8px 36px #64FFDA22, 0 0 0 2px #64FFDA33',
+    position: 'relative',
+    overflow: 'hidden',
   },
   header: {
     display: 'flex',
     alignItems: 'center',
-    padding: '1rem',
-    borderBottom: '1px solid #e5e7eb',
+    padding: '1.1rem 1.5rem 1.1rem 1.1rem',
+    borderBottom: '1.5px solid #233554',
+    background: 'linear-gradient(90deg, #112240 80%, #233554 100%)',
+    boxShadow: '0 2px 12px #0A192F22',
+    zIndex: 2,
   },
   backButton: {
-    background: 'none',
+    background: 'linear-gradient(135deg,#4f46e5 60%,#64FFDA 100%)',
     border: 'none',
-    fontSize: '1.2rem',
-    color: '#4f46e5',
+    fontSize: '1.3rem',
+    color: '#fff',
     cursor: 'pointer',
-    padding: '0.5rem',
-    marginRight: '1rem',
+    padding: '0.6rem',
+    marginRight: '1.1rem',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background-color 0.2s',
-    '&:hover': {
-      backgroundColor: '#f3f4f6',
-    },
+    boxShadow: '0 2px 8px #4f46e522',
+    transition: 'background 0.18s, box-shadow 0.18s',
   },
   userInfo: {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
+    gap: '1.1rem',
   },
   avatar: {
-    width: '40px',
-    height: '40px',
+    width: '44px',
+    height: '44px',
     borderRadius: '50%',
     objectFit: 'cover',
+    border: '2.5px solid #64FFDA',
+    boxShadow: '0 2px 12px #64FFDA33',
+    background: '#112240',
   },
   avatarPlaceholder: {
-    width: '40px',
-    height: '40px',
+    width: '44px',
+    height: '44px',
     borderRadius: '50%',
-    backgroundColor: '#e5e7eb',
+    background: 'linear-gradient(135deg,#233554 60%,#4f46e5 100%)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    fontSize: '1.2rem',
-    fontWeight: 600,
-    color: '#6b7280',
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: '#64FFDA',
+    border: '2.5px solid #64FFDA',
+    boxShadow: '0 2px 12px #64FFDA33',
   },
   userName: {
-    fontWeight: 600,
-    color: '#1f2937',
-    fontSize: '1rem',
+    fontWeight: 800,
+    color: '#E6F1FF',
+    fontSize: '1.08rem',
+    letterSpacing: 0.1,
+    textShadow: '0 2px 8px #0A192F44',
   },
   onlineStatus: {
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
-    fontSize: '0.875rem',
-    color: '#10b981',
+    fontSize: '0.97rem',
+    color: '#64FFDA',
+    fontWeight: 700,
   },
   onlineIndicator: {
-    fontSize: '0.5rem',
+    fontSize: '0.7rem',
+    color: '#64FFDA',
   },
   lastSeen: {
-    fontSize: '0.875rem',
-    color: '#6b7280',
+    fontSize: '0.97rem',
+    color: '#7dd3fc',
+    fontWeight: 600,
   },
   messagesContainer: {
     flex: 1,
     overflowY: 'auto',
-    padding: '1rem',
+    padding: '2.1rem 1.5rem 1.1rem 1.5rem',
     display: 'flex',
     flexDirection: 'column',
-    gap: '1rem',
+    gap: '1.15rem',
+    background: 'none',
   },
   message: {
     maxWidth: '70%',
-    padding: '0.75rem 1rem',
-    borderRadius: '12px',
+    padding: '1.05rem 1.25rem',
+    borderRadius: '18px',
     position: 'relative',
+    boxShadow: '0 2px 12px #64FFDA11',
+    fontWeight: 600,
+    fontSize: '1.07rem',
+    transition: 'box-shadow 0.18s',
   },
   sentMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#4f46e5',
-    color: '#fff',
-    borderBottomRightRadius: '4px',
+    background: 'linear-gradient(90deg,#64FFDA 60%,#4f46e5 100%)',
+    color: '#0A192F',
+    borderBottomRightRadius: '6px',
+    boxShadow: '0 2px 16px #64FFDA33',
   },
   receivedMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#f3f4f6',
-    color: '#1f2937',
-    borderBottomLeftRadius: '4px',
+    background: 'linear-gradient(135deg,#112240 80%,#233554 100%)',
+    color: '#E6F1FF',
+    borderBottomLeftRadius: '6px',
+    boxShadow: '0 2px 16px #4f46e522',
   },
   messageContent: {
-    fontSize: '1rem',
+    fontSize: '1.07rem',
     wordBreak: 'break-word',
+    letterSpacing: 0.1,
   },
   messageTime: {
-    fontSize: '0.75rem',
+    fontSize: '0.93rem',
     opacity: 0.7,
-    marginTop: '0.25rem',
+    marginTop: '0.35rem',
     textAlign: 'right',
+    color: '#64FFDA',
+    fontWeight: 700,
+    textShadow: '0 2px 8px #0A192F44',
   },
   inputContainer: {
     display: 'flex',
-    gap: '1rem',
-    padding: '1rem',
-    borderTop: '1px solid #e5e7eb',
+    gap: '1.1rem',
+    padding: '1.1rem 1.5rem',
+    borderTop: '1.5px solid #233554',
+    background: 'linear-gradient(90deg,#112240 80%,#233554 100%)',
+    zIndex: 2,
   },
   input: {
     flex: 1,
-    padding: '0.75rem 1rem',
-    border: '1px solid #e5e7eb',
-    borderRadius: '8px',
-    fontSize: '1rem',
+    padding: '1.05rem 1.2rem',
+    border: '2px solid #64FFDA44',
+    borderRadius: '14px',
+    fontSize: '1.09rem',
     outline: 'none',
-    transition: 'border-color 0.2s',
-    '&:focus': {
-      borderColor: '#4f46e5',
-    },
+    background: '#192B3F',
+    color: '#E6F1FF',
+    fontWeight: 600,
+    boxShadow: '0 1.5px 5px #64FFDA11',
+    transition: 'border 0.18s, box-shadow 0.18s',
   },
   sendButton: {
-    background: '#4f46e5',
+    background: 'linear-gradient(90deg,#64FFDA,#4f46e5)',
     color: '#fff',
     border: 'none',
-    borderRadius: '8px',
-    padding: '0.75rem 1.5rem',
+    borderRadius: '14px',
+    padding: '1.05rem 1.5rem',
     cursor: 'pointer',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'background-color 0.2s',
-    '&:hover': {
-      backgroundColor: '#4338ca',
-    },
+    fontWeight: 800,
+    fontSize: '1.13rem',
+    boxShadow: '0 2px 12px #64FFDA22',
+    transition: 'background 0.2s, box-shadow 0.2s',
+    textShadow: '0 2px 8px #0A192F44',
   },
   loading: {
     textAlign: 'center',
     padding: '2rem',
-    color: '#6b7280',
-    fontSize: '1rem',
+    color: '#64FFDA',
+    fontSize: '1.15rem',
+    fontWeight: 700,
   },
 };
 

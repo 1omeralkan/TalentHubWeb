@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH, FaCompass, FaEnvelope, FaComments, FaMoon, FaSun } from "react-icons/fa";
+import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH, FaCompass, FaEnvelope, FaComments, FaMoon, FaSun, FaBars, FaChevronLeft } from "react-icons/fa";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -10,6 +10,7 @@ const MainLayout = () => {
   const [showDropdown, setShowDropdown] = useState(false);
   const searchTimeout = useRef();
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const isActive = (path) => location.pathname === path;
 
@@ -57,30 +58,39 @@ const MainLayout = () => {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.sidebar}>
-        <h2 style={styles.sidebarTitle}>TalentHub</h2>
-        <div style={{ marginBottom: '1.2rem', position: 'relative' }}>
-          <div style={{ display: 'flex', alignItems: 'center', background: '#f0f0f0', borderRadius: '8px', padding: '0.4rem 0.8rem' }}>
-            <FaSearch style={{ color: '#888', fontSize: '1.1rem', marginRight: '0.5rem' }} />
+    <div style={{ ...styles.container, backgroundColor: '#0A192F' }}>
+      <div style={{ ...styles.sidebar, width: sidebarOpen ? 250 : 64, background: '#112240', transition: 'width 0.25s cubic-bezier(.4,1.3,.6,1), background 0.2s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.2rem', justifyContent: sidebarOpen ? 'space-between' : 'center' }}>
+          {sidebarOpen && <h2 style={{ ...styles.sidebarTitle, color: '#64FFDA' }}>TalentHub</h2>}
+          <button
+            onClick={() => setSidebarOpen(o => !o)}
+            style={{ background: 'none', border: 'none', color: '#64FFDA', fontSize: 22, cursor: 'pointer', marginLeft: sidebarOpen ? 8 : 0, transition: 'all 0.2s' }}
+            aria-label={sidebarOpen ? 'Sidebarı Kapat' : 'Sidebarı Aç'}
+          >
+            {sidebarOpen ? <FaChevronLeft /> : <FaBars />}
+          </button>
+        </div>
+        <div style={{ marginBottom: '1.2rem', position: 'relative', display: sidebarOpen ? 'block' : 'none', transition: 'display 0.2s' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: '#233554', borderRadius: '8px', padding: '0.4rem 0.8rem' }}>
+            <FaSearch style={{ color: '#64FFDA', fontSize: '1.1rem', marginRight: '0.5rem' }} />
             <input
               type="text"
               placeholder="Ara"
               value={searchTerm}
               onChange={handleSearchChange}
-              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', width: '100%' }}
+              style={{ border: 'none', outline: 'none', background: 'transparent', fontSize: '1rem', width: '100%', color: '#E6F1FF' }}
               onFocus={() => { if (searchResults.length > 0) setShowDropdown(true); }}
               onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
             />
           </div>
           {showDropdown && searchResults.length > 0 && (
-            <ul style={styles.searchDropdown}>
+            <ul style={{ ...styles.searchDropdown, background: '#233554', color: '#E6F1FF' }}>
               {searchResults.map(user => (
                 <li key={user.id} style={styles.searchResultItem} onClick={() => handleResultClick(user.id)}>
                   <img src={user.profilePhotoUrl ? `http://localhost:5000${user.profilePhotoUrl}` : "https://ui-avatars.com/api/?name=" + encodeURIComponent(user.fullName || user.userName)} alt="" style={styles.searchAvatar} />
                   <div>
-                    <div style={{ fontWeight: 600, color: '#4f46e5', fontSize: '1rem' }}>@{user.userName}</div>
-                    <div style={{ color: '#444', fontSize: '0.95rem' }}>{user.fullName}</div>
+                    <div style={{ fontWeight: 600, color: '#64FFDA', fontSize: '1rem' }}>@{user.userName}</div>
+                    <div style={{ color: '#E6F1FF', fontSize: '0.95rem' }}>{user.fullName}</div>
                   </div>
                 </li>
               ))}
@@ -88,38 +98,33 @@ const MainLayout = () => {
           )}
         </div>
         <div style={styles.sidebarMenu}>
-          <Link to="/" style={{ ...styles.sidebarItem, ...(isActive("/") && styles.activeItem) }}>
-            <FaHome style={styles.icon} />
-            <span>Ana Sayfa</span>
+          <Link to="/" style={{ ...styles.sidebarItem, ...(isActive("/") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0 }}>
+            <FaHome style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Ana Sayfa</span>}
           </Link>
-          <Link to="/dashboard" style={{ ...styles.sidebarItem, ...(isActive("/dashboard") && styles.activeItem) }}>
-            <FaCompass style={styles.icon} />
-            <span>Keşfet</span>
+          <Link to="/dashboard" style={{ ...styles.sidebarItem, ...(isActive("/dashboard") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0 }}>
+            <FaCompass style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Keşfet</span>}
           </Link>
-          <Link to="/messages" style={{ ...styles.sidebarItem, ...(isActive("/messages") && styles.activeItem) }}>
-            <FaComments style={styles.icon} />
-            <span>Mesajlar</span>
+          <Link to="/messages" style={{ ...styles.sidebarItem, ...(isActive("/messages") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0 }}>
+            <FaComments style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Mesajlar</span>}
           </Link>
-          <Link to="/new-message" style={{ ...styles.sidebarItem, ...(isActive("/new-message") && styles.activeItem) }}>
-            <FaEnvelope style={styles.icon} />
-            <span>Yeni Mesaj</span>
+          <Link to="/new-message" style={{ ...styles.sidebarItem, ...(isActive("/new-message") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0 }}>
+            <FaEnvelope style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Yeni Mesaj</span>}
           </Link>
-          <Link to="/profile" style={{ ...styles.sidebarItem, ...(isActive("/profile") && styles.activeItem) }}>
-            <FaUser style={styles.icon} />
-            <span>Profil</span>
+          <Link to="/profile" style={{ ...styles.sidebarItem, ...(isActive("/profile") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0 }}>
+            <FaUser style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Profil</span>}
           </Link>
-          <Link to="/upload" style={{ ...styles.sidebarItem, ...(isActive("/upload") && styles.activeItem) }}>
-            <FaPlusSquare style={styles.icon} />
-            <span>Yükle</span>
+          <Link to="/upload" style={{ ...styles.sidebarItem, ...(isActive("/upload") && styles.activeItem), justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0, marginBottom: 0 }}>
+            <FaPlusSquare style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Yükle</span>}
           </Link>
-          <div style={{ ...styles.sidebarItem, cursor: 'pointer' }} onClick={toggleTheme}>
-            {theme === "dark" ? <FaSun style={styles.icon} /> : <FaMoon style={styles.icon} />}
-            <span>Tema Değiştir</span>
-          </div>
-          <div style={{ height: '1.5rem' }} />
-          <div style={styles.logoutButton} onClick={handleLogout}>
-            <FaUser style={styles.themeIcon} />
-            <span>Çıkış Yap</span>
+          <div style={{ ...styles.logoutButton, justifyContent: sidebarOpen ? 'flex-start' : 'center', padding: sidebarOpen ? '1.05rem 1.1rem' : '1.05rem 0', borderRadius: 16, fontSize: sidebarOpen ? '1.13rem' : 0, marginBottom: 0, marginTop: 0 }} onClick={handleLogout}>
+            <FaUser style={{ ...styles.icon, marginRight: sidebarOpen ? 18 : 0, fontSize: sidebarOpen ? 23 : 28, minWidth: 28, textAlign: 'center' }} />
+            {sidebarOpen && <span>Çıkış Yap</span>}
           </div>
         </div>
       </div>
@@ -133,63 +138,80 @@ const MainLayout = () => {
 const styles = {
   container: {
     minHeight: "100vh",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#0A192F",
     display: "flex",
   },
   sidebar: {
     width: "250px",
-    backgroundColor: "#fff",
-    boxShadow: "2px 0 5px rgba(0,0,0,0.1)",
-    padding: "1.5rem 1rem 1rem 1rem",
+    background: "linear-gradient(160deg, #112240 60%, #233554 100%)",
+    boxShadow: "2px 0 16px 0 rgba(36, 60, 99, 0.18)",
+    padding: "2.2rem 1.2rem 1.2rem 1.2rem",
     position: "sticky",
     top: 0,
     height: "100vh",
     display: "flex",
     flexDirection: "column",
     zIndex: 10,
+    borderTopRightRadius: 32,
+    borderBottomRightRadius: 32,
+    transition: 'width 0.25s cubic-bezier(.4,1.3,.6,1), background 0.2s',
   },
   sidebarTitle: {
     fontFamily: 'Montserrat, sans-serif',
-    fontWeight: 700,
-    fontSize: '2rem',
-    color: '#4f46e5',
-    letterSpacing: '1px',
-    marginBottom: '1.2rem',
+    fontWeight: 800,
+    fontSize: '2.2rem',
+    color: '#64FFDA',
+    letterSpacing: '1.5px',
+    marginBottom: '2.2rem',
+    marginLeft: 2,
+    transition: 'color 0.2s',
   },
   sidebarMenu: {
-    marginTop: "1rem",
+    marginTop: "1.5rem",
     flex: 1,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.7rem',
   },
   sidebarItem: {
     display: "flex",
     alignItems: "center",
-    padding: "0.8rem 1rem",
-    color: "#333",
+    justifyContent: 'flex-start',
+    padding: "1.05rem 1.1rem",
+    color: "#E6F1FF",
     textDecoration: "none",
-    borderRadius: "5px",
-    marginBottom: "0.5rem",
-    fontWeight: 500,
-    fontSize: "1.08rem",
-    transition: "all 0.2s",
+    borderRadius: "16px",
+    marginBottom: "0.2rem",
+    fontWeight: 600,
+    fontSize: "1.13rem",
+    letterSpacing: 0.1,
+    transition: "all 0.22s cubic-bezier(.4,1.3,.6,1)",
+    boxShadow: 'none',
   },
   activeItem: {
-    backgroundColor: "#4f46e5",
-    color: "#fff",
+    background: "linear-gradient(90deg, #64FFDA 0%, #4f46e5 100%)",
+    color: "#112240",
+    boxShadow: '0 2px 16px 0 rgba(100,255,218,0.10)',
   },
   icon: {
-    marginRight: "0.8rem",
-    fontSize: "1.2rem",
+    marginRight: "1.1rem",
+    fontSize: "1.45rem",
+    minWidth: 28,
+    textAlign: 'center',
+    transition: 'font-size 0.18s',
   },
   logoutButton: {
     display: "flex",
     alignItems: "center",
-    padding: "0.8rem 1rem",
-    color: "#ef4444",
+    padding: "1.05rem 1.1rem",
+    color: "#FF6B6B",
     cursor: "pointer",
-    borderRadius: "5px",
-    marginTop: "0.5rem",
+    borderRadius: "16px",
+    marginTop: "0.7rem",
     fontWeight: "bold",
-    transition: "all 0.2s",
+    fontSize: '1.13rem',
+    transition: "all 0.22s cubic-bezier(.4,1.3,.6,1)",
+    background: 'none',
   },
   contentArea: {
     flex: 1,
@@ -205,9 +227,9 @@ const styles = {
     top: '48px',
     left: 0,
     width: '100%',
-    background: '#fff',
-    borderRadius: '8px',
-    boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+    background: '#233554',
+    borderRadius: '12px',
+    boxShadow: '0 8px 32px rgba(36,60,99,0.18)',
     zIndex: 100,
     padding: 0,
     margin: 0,
@@ -219,18 +241,22 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.7rem',
-    padding: '0.7rem 1rem',
+    padding: '0.9rem 1.2rem',
     cursor: 'pointer',
-    borderBottom: '1px solid #f3f3f3',
+    borderBottom: '1px solid #1a2636',
     transition: 'background 0.18s',
-    background: '#fff',
+    background: 'none',
+    color: '#E6F1FF',
+    fontWeight: 500,
+    fontSize: '1.05rem',
   },
   searchAvatar: {
-    width: '32px',
-    height: '32px',
+    width: '36px',
+    height: '36px',
     borderRadius: '50%',
     objectFit: 'cover',
-    background: '#e0e7ff',
+    background: '#233554',
+    border: '2px solid #64FFDA22',
   },
 };
 

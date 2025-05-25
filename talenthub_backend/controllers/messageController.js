@@ -170,7 +170,9 @@ const getUserMessages = async (req, res) => {
 const getRecentChats = async (req, res) => {
   try {
     const userId = req.user.id;
-
+    // Kullanıcının sildiği sohbetleri bul
+    const deletedChats = await prisma.chatDelete.findMany({ where: { userId }, select: { chatId: true } });
+    const deletedChatIds = deletedChats.map(dc => dc.chatId);
     // Son mesajlaşılan kullanıcıları getir
     const recentChats = await prisma.message.findMany({
       where: {
@@ -178,6 +180,7 @@ const getRecentChats = async (req, res) => {
           { senderId: userId },
           { receiverId: userId },
         ],
+        chatId: { notIn: deletedChatIds },
       },
       include: {
         sender: {
@@ -204,19 +207,18 @@ const getRecentChats = async (req, res) => {
       orderBy: {
         createdAt: 'desc',
       },
-      distinct: ['senderId', 'receiverId'],
+      distinct: ['chatId'],
     });
-
     // Mesajlaşılan kullanıcıları düzenle
     const formattedChats = recentChats.map(chat => {
       const otherUser = chat.senderId === userId ? chat.receiver : chat.sender;
       return {
         user: otherUser,
         lastMessage: chat,
+        chatId: chat.chatId,
         unreadCount: 0, // Bu kısmı daha sonra implement edeceğiz
       };
     });
-
     res.json(formattedChats);
   } catch (error) {
     console.error('Son mesajlaşmaları getirme hatası:', error);
@@ -262,10 +264,30 @@ const deleteMessageForAll = async (req, res) => {
   }
 };
 
+// Bir sohbeti sadece kendinden sil (Benden Sil)
+const deleteChatForMe = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { chatId } = req.params;
+    // Sohbet var mı kontrol et
+    const chat = await prisma.chat.findUnique({ where: { id: parseInt(chatId) } });
+    if (!chat) return res.status(404).json({ error: 'Sohbet bulunamadı' });
+    // Zaten silinmiş mi kontrol et
+    const alreadyDeleted = await prisma.chatDelete.findUnique({ where: { userId_chatId: { userId, chatId: parseInt(chatId) } } });
+    if (alreadyDeleted) return res.status(200).json({ success: true });
+    await prisma.chatDelete.create({ data: { userId, chatId: parseInt(chatId) } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Sohbeti benden sil hatası:', error);
+    res.status(500).json({ error: 'Sohbet silinemedi' });
+  }
+};
+
 module.exports = {
   sendMessage,
   getUserMessages,
   getRecentChats,
   deleteMessageForMe,
   deleteMessageForAll,
+  deleteChatForMe,
 }; 

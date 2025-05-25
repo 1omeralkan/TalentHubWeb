@@ -5,12 +5,12 @@ import { FaUserAlt, FaEnvelope, FaLock, FaEye, FaEyeSlash, FaGoogle, FaFacebookF
 const palette = {
   primary: "#4f46e5",
   secondary: "#6366f1",
-  accent: "#a5b4fc",
-  bgLeft: "#1e293b",
+  accent: "#64FFDA",
+  bgLeft: "linear-gradient(135deg, #0A192F 60%, #112240 100%)",
   yellow: "#facc15",
-  white: "#fff",
-  bgGradient: "linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)",
-  bgLight: "#f6f7fb",
+  white: "#E6F1FF",
+  bgGradient: "linear-gradient(135deg, #64FFDA 0%, #4f46e5 100%)",
+  bgLight: "#eaf6fb",
 };
 
 const LoginRegisterPage = () => {
@@ -82,12 +82,13 @@ const LoginRegisterPage = () => {
   };
 
   return (
-    <div style={{...styles.bgWrap, background: palette.bgLight}}>
-      <div style={{...styles.gradientBg, background: palette.bgGradient, opacity: 0.10}}></div>
+    <div style={{...styles.bgWrap, background: '#0A192F'}}>
+      <div style={{...styles.gradientBg, background: palette.bgGradient, opacity: 0.13}}></div>
       <div style={styles.centerWrap}>
         <div style={{
           ...styles.card,
           boxShadow: "0 8px 32px rgba(79,70,229,0.13)",
+          background: 'none',
         }}>
           {/* Sol Panel */}
           <div style={{
@@ -101,6 +102,7 @@ const LoginRegisterPage = () => {
             transition: "all 0.5s cubic-bezier(.4,1.3,.6,1)",
             transform: animating ? `scale(0.98)` : "scale(1)",
             opacity: animating ? 0.7 : 1,
+            boxShadow: '0 8px 32px 0 #0A192F33',
           }}>
             <div style={{
               padding: '1.2rem 2rem',
@@ -113,24 +115,27 @@ const LoginRegisterPage = () => {
               width: '100%',
             }}>
               <h2 style={{
-                fontWeight:700,
-                fontSize:'2.3rem',
+                fontWeight:800,
+                fontSize:'2.5rem',
                 marginBottom:18,
                 letterSpacing:0.5,
                 marginTop: 0,
                 textAlign: 'center',
                 lineHeight: 1.18,
+                color: '#64FFDA',
+                textShadow: '0 2px 12px #0A192F44',
               }}>
                 {isLogin ? "TalentHub'a Hoş Geldin!" : "Aramıza Katıl!"}
               </h2>
               <p style={{
-                fontSize:'1.15rem',
+                fontSize:'1.18rem',
                 opacity:0.93,
                 marginBottom:38,
                 textAlign:'center',
                 maxWidth:270,
                 marginTop: 8,
                 lineHeight: 1.5,
+                color: '#E6F1FF',
               }}>
                 {isLogin
                   ? "Yeteneklerini paylaşmak ve topluluğumuza katılmak için giriş yap."
@@ -141,16 +146,17 @@ const LoginRegisterPage = () => {
                 style={{
                   ...styles.switchBtn,
                   background: "none",
-                  color: palette.white,
-                  border: `2px solid ${palette.white}` ,
+                  color: palette.accent,
+                  border: `2px solid ${palette.accent}` ,
                   marginTop: 8,
-                  fontWeight: 600,
+                  fontWeight: 700,
                   fontSize: '1.13rem',
                   letterSpacing: 0.2,
-                  boxShadow: 'none',
+                  boxShadow: '0 2px 12px #64FFDA22',
                   transition: 'all 0.2s',
                   minWidth: 190,
                   minHeight: 50,
+                  borderRadius: 18,
                 }}
                 disabled={animating}
               >
@@ -169,19 +175,20 @@ const LoginRegisterPage = () => {
             transition: "all 0.5s cubic-bezier(.4,1.3,.6,1)",
             transform: animating ? `scale(0.98)` : "scale(1)",
             opacity: animating ? 0.7 : 1,
+            boxShadow: '0 8px 32px 0 #0A192F22',
           }}>
             <div style={{padding: '2.5rem 2rem', minWidth: 320, maxWidth: 370, width: '100%', display:'flex', flexDirection:'column', alignItems:'center'}}>
-              <h2 style={{fontWeight:700, fontSize:'1.7rem', color:palette.primary, marginBottom:8, letterSpacing:0.5}}>
+              <h2 style={{fontWeight:800, fontSize:'1.8rem', color:'#4f46e5', marginBottom:8, letterSpacing:0.5, textShadow:'0 2px 8px #6366f144'}}>
                 {isLogin ? "Giriş Yap" : "Kayıt Ol"}
               </h2>
-              <div style={{display:'flex', gap:12, margin:'12px 0 18px 0'}}>
+              <div style={{display:'flex', gap:14, margin:'12px 0 18px 0'}}>
                 <SocialButton icon={<FaGoogle />} />
                 <SocialButton icon={<FaFacebookF />} />
                 <SocialButton icon={<FaPinterestP />} />
                 <SocialButton icon={<FaLinkedinIn />} />
               </div>
-              <div style={{fontWeight:600, color:palette.secondary, margin:'8px 0 8px 0', fontSize:'1.08rem'}}>VEYA</div>
-              <form onSubmit={handleSubmit} style={{width:'100%', display:'flex', flexDirection:'column', gap:16}}>
+              <div style={{fontWeight:700, color:'#6366f1', margin:'8px 0 8px 0', fontSize:'1.08rem', letterSpacing:0.1}}>VEYA</div>
+              <form onSubmit={handleSubmit} style={{width:'100%', display:'flex', flexDirection:'column', gap:18}}>
                 {!isLogin && (
                   <>
                     <InputField
