@@ -31,13 +31,17 @@ const MessagesPage = () => {
 
       const data = await response.json();
       const currentUserId = jwtDecode(token).userId;
-      const chats = data.map(chat => {
-        const otherParticipant = chat.participants.find(p => p.user.id !== currentUserId)?.user;
-        return {
-          user: otherParticipant,
-          lastMessage: chat.messages[0] || { content: 'Henüz mesaj yok' }
-        };
-      });
+      const chats = data
+        .map(chat => {
+          const otherParticipant = chat.participants.find(p => p.user && p.user.id !== currentUserId)?.user;
+          const lastMessage = chat.messages && chat.messages.length > 0 ? chat.messages[0] : null;
+          if (!otherParticipant) return null;
+          return {
+            user: otherParticipant,
+            lastMessage: lastMessage,
+          };
+        })
+        .filter(Boolean);
       setChats(chats);
     } catch (error) {
       console.error('Mesajları getirme hatası:', error);
@@ -94,41 +98,43 @@ const MessagesPage = () => {
             {searchTerm ? 'Arama sonucu bulunamadı' : 'Henüz mesajınız yok'}
           </div>
         ) : (
-          filteredChats.map((chat) => (
-            <div
-              key={chat.user.id}
-              style={styles.chatItem}
-              onClick={() => navigate(`/chat/${chat.user.id}`)}
-            >
-              <div style={styles.avatarContainer}>
-                {chat.user.profilePhotoUrl ? (
-                  <img
-                    src={`http://localhost:5000${chat.user.profilePhotoUrl}`}
-                    alt={chat.user.userName}
-                    style={styles.avatar}
-                  />
-                ) : (
-                  <div style={styles.avatarPlaceholder}>
-                    {chat.user.userName[0].toUpperCase()}
+          filteredChats
+            .filter(chat => chat.user)
+            .map((chat) => (
+              <div
+                key={chat.user.id}
+                style={styles.chatItem}
+                onClick={() => navigate(`/chat/${chat.user.id}`)}
+              >
+                <div style={styles.avatarContainer}>
+                  {chat.user.profilePhotoUrl ? (
+                    <img
+                      src={`http://localhost:5000${chat.user.profilePhotoUrl}`}
+                      alt={chat.user.userName}
+                      style={styles.avatar}
+                    />
+                  ) : (
+                    <div style={styles.avatarPlaceholder}>
+                      {chat.user.userName[0].toUpperCase()}
+                    </div>
+                  )}
+                  {chat.user.isOnline && (
+                    <FaCircle style={styles.onlineIndicator} />
+                  )}
+                </div>
+                <div style={styles.chatInfo}>
+                  <div style={styles.chatHeader}>
+                    <span style={styles.userName}>@{chat.user.userName}</span>
+                    <span style={styles.lastSeen}>
+                      {chat.user.isOnline ? 'Çevrimiçi' : formatLastSeen(chat.user.lastSeen)}
+                    </span>
                   </div>
-                )}
-                {chat.user.isOnline && (
-                  <FaCircle style={styles.onlineIndicator} />
-                )}
-              </div>
-              <div style={styles.chatInfo}>
-                <div style={styles.chatHeader}>
-                  <span style={styles.userName}>@{chat.user.userName}</span>
-                  <span style={styles.lastSeen}>
-                    {chat.user.isOnline ? 'Çevrimiçi' : formatLastSeen(chat.user.lastSeen)}
-                  </span>
-                </div>
-                <div style={styles.lastMessage}>
-                  {chat.lastMessage.content}
+                  <div style={styles.lastMessage}>
+                    {chat.lastMessage && chat.lastMessage.content ? chat.lastMessage.content : 'Henüz mesaj yok'}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))
         )}
       </div>
     </div>

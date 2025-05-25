@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaCommentDots } from "react-icons/fa";
+import { FaCommentDots, FaShare } from "react-icons/fa";
 import LikeButton from "../ui/LikeButton";
 import CommentSection from "../ui/CommentSection";
 
@@ -12,6 +12,11 @@ const HomePage = () => {
   const [error, setError] = useState("");
   const [openCommentsId, setOpenCommentsId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [shareCounts, setShareCounts] = useState({});
+  const [showShareModalId, setShowShareModalId] = useState(null);
+  const [followingList, setFollowingList] = useState([]);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(null);
 
   useEffect(() => {
     const fetchUploads = async () => {
@@ -40,6 +45,85 @@ const HomePage = () => {
     };
     fetchUploads();
   }, []);
+
+  // Her gönderi için paylaşım sayısını çek
+  useEffect(() => {
+    const fetchAllShareCounts = async () => {
+      const counts = {};
+      for (const upload of uploads) {
+        try {
+          const res = await fetch(`${API_BASE}/uploads/${upload.id}/shareCount`);
+          const data = await res.json();
+          counts[upload.id] = data.count || 0;
+        } catch {
+          counts[upload.id] = 0;
+        }
+      }
+      setShareCounts(counts);
+    };
+    if (uploads.length > 0) fetchAllShareCounts();
+  }, [uploads]);
+
+  const handleOpenShareModal = async (uploadId) => {
+    setShowShareModalId(uploadId);
+    setShareSuccess(null);
+    setShareLoading(false);
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch(`http://localhost:5000/api/follow/following/${currentUser.userId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      setFollowingList(data);
+    } catch (err) {
+      setFollowingList([]);
+    }
+  };
+
+  const handleShareToUser = async (targetUserId, upload) => {
+    setShareLoading(true);
+    setShareSuccess(null);
+    try {
+      const token = localStorage.getItem('token');
+      let mediaUrl = upload.mediaUrl;
+      if (mediaUrl && !mediaUrl.startsWith('/')) mediaUrl = '/' + mediaUrl;
+      let thumbnailUrl = '';
+      if (mediaUrl.match(/\.(mp4|webm)$/i)) {
+        thumbnailUrl = mediaUrl;
+      } else if (mediaUrl.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        thumbnailUrl = mediaUrl;
+      }
+      const shareMessage = {
+        type: 'share',
+        videoId: upload.id,
+        thumbnailUrl,
+        caption: upload.caption,
+        link: `http://localhost:3000/post/${upload.id}`
+      };
+      const content = JSON.stringify(shareMessage);
+      const res = await fetch('http://localhost:5000/api/messages/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ receiverId: targetUserId, content })
+      });
+      if (res.ok) {
+        setShareSuccess('Gönderi başarıyla paylaşıldı!');
+        // Paylaşım sayısını güncelle
+        const countRes = await fetch(`${API_BASE}/uploads/${upload.id}/shareCount`);
+        const countData = await countRes.json();
+        setShareCounts(prev => ({ ...prev, [upload.id]: countData.count || 0 }));
+      } else {
+        setShareSuccess('Paylaşım başarısız!');
+      }
+    } catch (err) {
+      setShareSuccess('Paylaşım başarısız!');
+    } finally {
+      setShareLoading(false);
+    }
+  };
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', padding: '32px 0', background: '#f8fafc' }}>
@@ -119,24 +203,26 @@ const HomePage = () => {
                   </div>
                 </div>
                 {/* Dikey aksiyon barı */}
-                <div style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '1.5rem',
-                  background: 'rgba(255,255,255,0.96)',
-                  borderRadius: '18px',
-                  padding: '1.2rem 0.7rem',
-                  boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
-                  minWidth: '64px',
-                  zIndex: 2,
-                  height: 'fit-content',
-                  margin: '24px 18px 24px 0',
-                  alignSelf: 'center',
-                  position: 'relative',
-                  border: '1px solid #e0e7ff',
-                  transition: 'box-shadow 0.18s, background 0.18s',
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '1.5rem',
+                    background: 'rgba(255,255,255,0.96)',
+                    borderRadius: '18px',
+                    padding: '1.2rem 0.7rem',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+                    minWidth: '64px',
+                    zIndex: 2,
+                    height: 'fit-content',
+                    margin: '24px 18px 24px 0',
+                    alignSelf: 'center',
+                    position: 'relative',
+                    border: '1px solid #e0e7ff',
+                    transition: 'box-shadow 0.18s, background 0.18s',
+                  }}
+                >
                   <LikeButton uploadId={upload.id} />
                   <div
                     style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#6366f1', fontWeight: 500, fontSize: '1.08rem', userSelect: 'none', transition: 'color 0.2s' }}
@@ -145,6 +231,14 @@ const HomePage = () => {
                   >
                     <FaCommentDots style={{ fontSize: '2rem', color: openCommentsId === upload.id ? '#4f46e5' : '#bbb', filter: openCommentsId === upload.id ? 'drop-shadow(0 2px 8px #6366f1aa)' : 'none', transition: 'color 0.2s, filter 0.2s' }} />
                     <span style={{ fontSize: '1.08rem', color: openCommentsId === upload.id ? '#4f46e5' : '#bbb', fontWeight: 600 }}>{upload.commentCount}</span>
+                  </div>
+                  <div
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, cursor: 'pointer', color: '#a21caf', fontWeight: 500, fontSize: '1.08rem', userSelect: 'none', transition: 'color 0.2s' }}
+                    onClick={() => handleOpenShareModal(upload.id)}
+                    title="Paylaş"
+                  >
+                    <FaShare style={{ fontSize: '2rem', color: '#a21caf', filter: 'drop-shadow(0 2px 8px #a21caf88)', transition: 'color 0.2s, filter 0.2s' }} />
+                    <span style={{ fontSize: '1.08rem', color: '#a21caf', fontWeight: 600 }}>{shareCounts[upload.id] || 0}</span>
                   </div>
                 </div>
               </div>
@@ -168,6 +262,28 @@ const HomePage = () => {
                   </div>
                   <div style={{ padding: '10px 18px 18px 18px' }}>
                     <CommentSection uploadId={upload.id} currentUser={currentUser} hideTitle />
+                  </div>
+                </div>
+              )}
+              {showShareModalId === upload.id && (
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(30,30,30,0.18)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ background: '#fff', borderRadius: 16, padding: 28, minWidth: 320, maxWidth: 400, boxShadow: '0 4px 32px #6366f155', position: 'relative' }}>
+                    <button onClick={() => setShowShareModalId(null)} style={{ position: 'absolute', top: 12, right: 12, background: 'none', border: 'none', fontSize: 22, color: '#bbb', cursor: 'pointer', borderRadius: 6 }}>×</button>
+                    <h3 style={{ fontWeight: 700, fontSize: 20, color: '#4f46e5', marginBottom: 18 }}>Gönderiyi Paylaş</h3>
+                    {followingList.length === 0 ? (
+                      <div style={{ color: '#888', fontSize: 16, textAlign: 'center', margin: '24px 0' }}>Takip ettiğin kimse yok.</div>
+                    ) : (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                        {followingList.map(f => (
+                          <button key={f.id} onClick={() => handleShareToUser(f.id, upload)} disabled={shareLoading} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 14px', borderRadius: 8, border: '1px solid #e5e7eb', background: '#f3f4f6', cursor: 'pointer', fontWeight: 600, fontSize: 16, color: '#23223b', transition: 'background 0.18s', opacity: shareLoading ? 0.7 : 1 }}>
+                            {f.profilePhotoUrl ? <img src={`http://localhost:5000${f.profilePhotoUrl}`} alt={f.userName} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover' }} /> : <span style={{ width: 32, height: 32, borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: '#6366f1', fontSize: 17 }}>{f.userName?.[0]?.toUpperCase() || 'K'}</span>}
+                            <span>@{f.userName}</span>
+                            <span style={{ color: '#6b7280', fontWeight: 400, fontSize: 15 }}>{f.fullName}</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    {shareSuccess && <div style={{ marginTop: 18, color: shareSuccess.includes('başarı') ? '#22c55e' : '#e11d48', fontWeight: 600, textAlign: 'center' }}>{shareSuccess}</div>}
                   </div>
                 </div>
               )}

@@ -5,6 +5,8 @@ import { FaUser, FaUpload, FaHome, FaPlusSquare, FaSearch, FaHeart, FaCommentDot
 import LikeButton from "../ui/LikeButton";
 import CommentSection from "../ui/CommentSection";
 
+const API_BASE = "http://localhost:5000/api";
+
 const DashboardPage = () => {
   const [message, setMessage] = useState("");
   const [user, setUser] = useState({});
@@ -22,6 +24,7 @@ const DashboardPage = () => {
   const [followingList, setFollowingList] = useState([]);
   const [shareLoading, setShareLoading] = useState(false);
   const [shareSuccess, setShareSuccess] = useState(null);
+  const [shareCount, setShareCount] = useState(0);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -209,13 +212,47 @@ const DashboardPage = () => {
     }
   };
 
+  // Paylaşım sayısını çek
+  const fetchShareCount = async (uploadId) => {
+    if (!uploadId) return;
+    try {
+      const res = await fetch(`${API_BASE}/uploads/${uploadId}/shareCount`);
+      const data = await res.json();
+      setShareCount(data.count || 0);
+    } catch {}
+  };
+
+  // Aktif video değiştiğinde paylaşım sayısını çek
+  useEffect(() => {
+    if (videoItems.length > 0) {
+      fetchShareCount(videoItems[activeIndex]?.id);
+    }
+    // eslint-disable-next-line
+  }, [activeIndex, videoItems]);
+
+  // Paylaşım sonrası da güncelle
   const handleShareToUser = async (targetUserId) => {
     setShareLoading(true);
     setShareSuccess(null);
     try {
       const token = localStorage.getItem('token');
       const currentVideo = videoItems[activeIndex];
-      const content = `@${user.userName} bir gönderi paylaştı: http://localhost:3000/post/${currentVideo.id}`;
+      let mediaUrl = currentVideo.mediaUrl;
+      if (mediaUrl && !mediaUrl.startsWith('/')) mediaUrl = '/' + mediaUrl;
+      let thumbnailUrl = '';
+      if (mediaUrl.match(/\.(mp4|webm)$/i)) {
+        thumbnailUrl = mediaUrl;
+      } else if (mediaUrl.match(/\.(jpg|jpeg|png|gif)$/i)) {
+        thumbnailUrl = mediaUrl;
+      }
+      const shareMessage = {
+        type: 'share',
+        videoId: currentVideo.id,
+        thumbnailUrl,
+        caption: currentVideo.caption,
+        link: `http://localhost:3000/post/${currentVideo.id}`
+      };
+      const content = JSON.stringify(shareMessage);
       const res = await fetch('http://localhost:5000/api/messages/send', {
         method: 'POST',
         headers: {
@@ -226,6 +263,7 @@ const DashboardPage = () => {
       });
       if (res.ok) {
         setShareSuccess('Gönderi başarıyla paylaşıldı!');
+        fetchShareCount(currentVideo.id); // <-- paylaşım sonrası güncelle
       } else {
         setShareSuccess('Paylaşım başarısız!');
       }
@@ -307,7 +345,7 @@ const DashboardPage = () => {
                     }}
                   >
                     <FaShare style={{ ...styles.actionIcon }} onClick={handleOpenShareModal} />
-                    <span style={{ ...styles.actionCount }}>7</span>
+                    <span style={{ ...styles.actionCount }}>{shareCount}</span>
                   </div>
                 </div>
               </div>

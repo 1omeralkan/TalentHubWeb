@@ -11,11 +11,38 @@ const sendMessage = async (req, res) => {
       return res.status(400).json({ error: 'Mesaj içeriği ve alıcı ID gereklidir' });
     }
 
+    // İki kullanıcı arasındaki chat'i bul veya oluştur
+    let chat = await prisma.chat.findFirst({
+      where: {
+        participants: {
+          some: { userId: senderId },
+        },
+        AND: {
+          participants: {
+            some: { userId: receiverId },
+          },
+        },
+      },
+    });
+    if (!chat) {
+      chat = await prisma.chat.create({
+        data: {
+          participants: {
+            create: [
+              { userId: senderId },
+              { userId: receiverId },
+            ],
+          },
+        },
+      });
+    }
+
     const message = await prisma.message.create({
       data: {
         content,
         senderId,
         receiverId,
+        chatId: chat.id,
       },
       include: {
         sender: {
@@ -55,8 +82,29 @@ const getUserMessages = async (req, res) => {
     const userId = req.user.id;
     const { otherUserId } = req.params;
 
+    // Önce iki kullanıcı arasındaki chat'i bul
+    const chat = await prisma.chat.findFirst({
+      where: {
+        participants: {
+          some: { userId: userId },
+        },
+        AND: [
+          {
+            participants: {
+              some: { userId: parseInt(otherUserId) },
+            },
+          },
+        ],
+      },
+    });
+
+    if (!chat) {
+      return res.json([]); // Hiç chat yoksa boş dizi dön
+    }
+
     const messages = await prisma.message.findMany({
       where: {
+        chatId: chat.id, // chatId ile filtrele
         OR: [
           { senderId: userId, receiverId: parseInt(otherUserId) },
           { senderId: parseInt(otherUserId), receiverId: userId },
@@ -79,6 +127,10 @@ const getUserMessages = async (req, res) => {
             profilePhotoUrl: true,
           },
         },
+        deletedBy: {
+          where: { userId: userId },
+          select: { id: true },
+        },
       },
       orderBy: {
         createdAt: 'asc',
@@ -88,6 +140,7 @@ const getUserMessages = async (req, res) => {
     // Okunmamış mesajları okundu olarak işaretle
     await prisma.message.updateMany({
       where: {
+        chatId: chat.id, // chatId ile filtrele
         senderId: parseInt(otherUserId),
         receiverId: userId,
         isRead: false,
@@ -97,7 +150,16 @@ const getUserMessages = async (req, res) => {
       },
     });
 
-    res.json(messages);
+    // deletedByMe alanını ekle ve silinenleri filtrele
+    const filtered = messages
+      .map(msg => ({
+        ...msg,
+        deletedByMe: msg.deletedBy && msg.deletedBy.length > 0
+      }))
+      .filter(msg => !msg.deletedByMe)
+      .map(({ deletedBy, ...rest }) => rest); // deletedBy alanını dışarıda bırak
+
+    res.json(filtered);
   } catch (error) {
     console.error('Mesajları getirme hatası:', error);
     res.status(500).json({ error: 'Mesajlar getirilemedi' });
@@ -162,8 +224,48 @@ const getRecentChats = async (req, res) => {
   }
 };
 
+// Bir mesajı sadece kendinden sil (Benden Sil)
+const deleteMessageForMe = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { messageId } = req.params;
+    // Mesaj var mı kontrol et
+    const message = await prisma.message.findUnique({ where: { id: parseInt(messageId) } });
+    if (!message) return res.status(404).json({ error: 'Mesaj bulunamadı' });
+    // Zaten silinmiş mi kontrol et
+    const alreadyDeleted = await prisma.messageDelete.findUnique({ where: { userId_messageId: { userId, messageId: parseInt(messageId) } } });
+    if (alreadyDeleted) return res.status(200).json({ success: true });
+    await prisma.messageDelete.create({ data: { userId, messageId: parseInt(messageId) } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Benden sil hatası:', error);
+    res.status(500).json({ error: 'Mesaj silinemedi' });
+  }
+};
+
+// Bir mesajı herkesten sil (Herkesten Sil)
+const deleteMessageForAll = async (req, res) => {
+  try {
+    const userId = req.user.userId;
+    const { messageId } = req.params;
+    const message = await prisma.message.findUnique({ where: { id: parseInt(messageId) } });
+    if (!message) return res.status(404).json({ error: 'Mesaj bulunamadı' });
+    if (message.senderId !== userId) return res.status(403).json({ error: 'Sadece kendi mesajını herkesten silebilirsin' });
+    // Önce MessageDelete kayıtlarını sil
+    await prisma.messageDelete.deleteMany({ where: { messageId: parseInt(messageId) } });
+    // Sonra mesajı sil
+    await prisma.message.delete({ where: { id: parseInt(messageId) } });
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Herkesten sil hatası:', error);
+    res.status(500).json({ error: 'Mesaj herkesten silinemedi' });
+  }
+};
+
 module.exports = {
   sendMessage,
   getUserMessages,
   getRecentChats,
+  deleteMessageForMe,
+  deleteMessageForAll,
 }; 

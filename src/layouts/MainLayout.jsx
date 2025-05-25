@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { Link, useLocation, useNavigate, Outlet } from "react-router-dom";
-import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH, FaCompass, FaEnvelope, FaComments } from "react-icons/fa";
+import { FaUser, FaPlusSquare, FaHome, FaSearch, FaEllipsisH, FaCompass, FaEnvelope, FaComments, FaMoon, FaSun } from "react-icons/fa";
 
 const MainLayout = () => {
   const location = useLocation();
@@ -9,6 +9,7 @@ const MainLayout = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const searchTimeout = useRef();
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
 
   const isActive = (path) => location.pathname === path;
 
@@ -44,6 +45,15 @@ const MainLayout = () => {
     setSearchTerm("");
     setSearchResults([]);
     navigate(`/profile/${userId}`);
+  };
+
+  React.useEffect(() => {
+    document.body.classList.toggle("dark", theme === "dark");
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((prev) => (prev === "light" ? "dark" : "light"));
   };
 
   return (
@@ -102,9 +112,9 @@ const MainLayout = () => {
             <FaPlusSquare style={styles.icon} />
             <span>Yükle</span>
           </Link>
-          <div style={styles.sidebarItem}>
-            <FaEllipsisH style={styles.icon} />
-            <span>Dahası</span>
+          <div style={{ ...styles.sidebarItem, cursor: 'pointer' }} onClick={toggleTheme}>
+            {theme === "dark" ? <FaSun style={styles.icon} /> : <FaMoon style={styles.icon} />}
+            <span>Tema Değiştir</span>
           </div>
           <div style={{ height: '1.5rem' }} />
           <div style={styles.logoutButton} onClick={handleLogout}>

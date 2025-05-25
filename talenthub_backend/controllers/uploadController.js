@@ -335,6 +335,39 @@ const getFollowingUploads = async (req, res) => {
   }
 };
 
+// Bir gönderinin paylaşım sayısını getir
+const getShareCount = async (req, res) => {
+  const uploadId = Number(req.params.id);
+  try {
+    // Tüm mesajlarda content'i JSON olarak parse et, type: 'share' ve videoId eşleşenleri bul
+    const messages = await prisma.message.findMany({
+      where: {
+        content: {
+          contains: '"type":"share"',
+        },
+      },
+      select: {
+        content: true,
+        receiverId: true,
+      },
+    });
+    // Filtrele: videoId eşleşen ve type: 'share' olanlar
+    const sharedUserIds = new Set();
+    messages.forEach(msg => {
+      try {
+        const parsed = JSON.parse(msg.content);
+        if (parsed.type === 'share' && Number(parsed.videoId) === uploadId) {
+          sharedUserIds.add(msg.receiverId);
+        }
+      } catch {}
+    });
+    res.json({ count: sharedUserIds.size });
+  } catch (err) {
+    console.error('Paylaşım sayısı hatası:', err);
+    res.status(500).json({ message: 'Sunucu hatası' });
+  }
+};
+
 module.exports = {
   uploadMedia,
   getUserUploads,
@@ -348,4 +381,5 @@ module.exports = {
   isPostDislikedByUser,
   getDislikers,
   getFollowingUploads,
+  getShareCount,
 };

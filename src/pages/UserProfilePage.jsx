@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FaUser, FaEllipsisV } from "react-icons/fa";
+import { FaUser, FaEllipsisV, FaUserPlus, FaUserCheck } from "react-icons/fa";
 import LikeCount from "../ui/LikeCount";
 import DislikeCount from "../ui/DislikeCount";
 import CommentCount from "../ui/CommentCount";
@@ -10,10 +10,20 @@ const UserProfilePage = () => {
   const [user, setUser] = useState(null);
   const [uploads, setUploads] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!userId) return;
+    // Giriş yapan kullanıcıyı al
+    if (token) {
+      try {
+        const decoded = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUserId(decoded.userId);
+      } catch {}
+    }
     // Kullanıcı bilgisi çek
     fetch(`http://localhost:5000/api/user/${userId}`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -21,6 +31,13 @@ const UserProfilePage = () => {
       .then(res => res.json())
       .then(data => setUser(data))
       .catch(() => setUser(null));
+    // Takip durumu kontrol et
+    fetch(`http://localhost:5000/api/follow/status/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(res => res.json())
+      .then(data => setIsFollowing(!!data.isFollowing))
+      .catch(() => setIsFollowing(false));
     // Kullanıcının yüklediği yetenekleri çek
     fetch(`http://localhost:5000/api/user/${userId}/uploads`, {
       headers: { Authorization: `Bearer ${token}` }
@@ -30,20 +47,67 @@ const UserProfilePage = () => {
       .finally(() => setLoading(false));
   }, [userId]);
 
+  const handleFollow = async () => {
+    if (followLoading) return;
+    setFollowLoading(true);
+    const token = localStorage.getItem("token");
+    try {
+      const method = isFollowing ? 'DELETE' : 'POST';
+      const res = await fetch(`http://localhost:5000/api/follow/${userId}`, {
+        method,
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || 'İşlem başarısız');
+      }
+      setIsFollowing(!isFollowing);
+    } catch (err) {
+      alert(err.message || "Bir hata oluştu");
+    } finally {
+      setFollowLoading(false);
+    }
+  };
+
   if (loading) return <div style={{textAlign:'center',marginTop:'2rem'}}>Yükleniyor...</div>;
   if (!user) return <div style={{textAlign:'center',marginTop:'2rem'}}>Kullanıcı bulunamadı.</div>;
 
   return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',width:'100%'}}>
       <div style={styles.profileCardModern}>
-        <div style={styles.avatarWrapper}>
-          <div style={styles.avatarCircle}>
-            {user.profilePhotoUrl ? (
-              <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={styles.avatarImage} />
-            ) : (
-              <span style={styles.avatarInitial}>{user.fullName ? user.fullName[0].toUpperCase() : (user.userName ? user.userName[0].toUpperCase() : 'K')}</span>
-            )}
+        <div style={{display:'flex',alignItems:'center',gap:16,justifyContent:'center',width:'100%'}}>
+          <div style={styles.avatarWrapper}>
+            <div style={styles.avatarCircle}>
+              {user.profilePhotoUrl ? (
+                <img src={`http://localhost:5000${user.profilePhotoUrl}`} alt={user.userName} style={styles.avatarImage} />
+              ) : (
+                <span style={styles.avatarInitial}>{user.fullName ? user.fullName[0].toUpperCase() : (user.userName ? user.userName[0].toUpperCase() : 'K')}</span>
+              )}
+            </div>
           </div>
+          {/* Takip Et/Bırak butonu, kendi profilinde gösterme */}
+          {currentUserId && Number(currentUserId) !== Number(userId) && (
+            <button
+              onClick={handleFollow}
+              disabled={followLoading}
+              style={{
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                color: '#fff',
+                fontSize: '1rem',
+                fontWeight: 600,
+                cursor: followLoading ? 'not-allowed' : 'pointer',
+                background: isFollowing ? 'linear-gradient(90deg, #e5e7eb, #d1d5db)' : 'linear-gradient(90deg, #4f46e5, #6366f1)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                minWidth: 120,
+              }}
+            >
+              {followLoading ? 'İşleniyor...' : isFollowing ? (<><FaUserCheck style={{color:'#4f46e5'}}/> Takibi Bırak</>) : (<><FaUserPlus style={{color:'#fff'}}/> Takip Et</>)}
+            </button>
+          )}
         </div>
         <div style={styles.profileUserName}>@{user.userName || user.fullName || 'Kullanıcı'}</div>
         <div style={styles.profileFullName}>{user.fullName}</div>

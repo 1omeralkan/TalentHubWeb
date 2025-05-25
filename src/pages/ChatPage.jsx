@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { FaArrowLeft, FaPaperPlane, FaCircle } from 'react-icons/fa';
+import { FaArrowLeft, FaPaperPlane, FaCircle, FaEllipsisV, FaTrashAlt, FaTrashRestore } from 'react-icons/fa';
 import { jwtDecode } from 'jwt-decode';
 import io from 'socket.io-client';
 
@@ -13,6 +13,9 @@ const ChatPage = () => {
   const [socket, setSocket] = useState(null);
   const messagesEndRef = useRef(null);
   const navigate = useNavigate();
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRef = useRef();
 
   useEffect(() => {
     // WebSocket bağlantısını kur
@@ -42,6 +45,30 @@ const ChatPage = () => {
   useEffect(() => {
     fetchMessages();
   }, [userId]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setCurrentUserId(decoded.userId);
+      } catch {}
+    }
+  }, []);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    }
+    if (openMenuId !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
 
   const fetchMessages = async () => {
     try {
@@ -143,6 +170,24 @@ const ChatPage = () => {
     });
   };
 
+  const handleDeleteForMe = async (messageId) => {
+    const token = localStorage.getItem('token');
+    await fetch(`http://localhost:5000/api/messages/messages/${messageId}/forme`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
+
+  const handleDeleteForAll = async (messageId) => {
+    const token = localStorage.getItem('token');
+    await fetch(`http://localhost:5000/api/messages/messages/${messageId}/forall`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    setMessages(prev => prev.filter(m => m.id !== messageId));
+  };
+
   if (loading) {
     return (
       <div style={styles.container}>
@@ -150,6 +195,10 @@ const ChatPage = () => {
       </div>
     );
   }
+
+  const styleSheet = document.createElement('style');
+  styleSheet.innerHTML = `@keyframes fadeInMenu { from { opacity: 0; transform: translateY(-10px);} to { opacity: 1; transform: translateY(0);} }`;
+  document.head.appendChild(styleSheet);
 
   return (
     <div style={styles.container}>
@@ -186,22 +235,113 @@ const ChatPage = () => {
       </div>
 
       <div style={styles.messagesContainer}>
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            style={{
-              ...styles.message,
-              ...(message.senderId === parseInt(userId) ? styles.receivedMessage : styles.sentMessage)
-            }}
-          >
-            <div style={styles.messageContent}>
-              {message.content}
+        {messages.map((message) => {
+          let shareData = null;
+          try {
+            const parsed = JSON.parse(message.content);
+            if (parsed && parsed.type === 'share') shareData = parsed;
+          } catch {}
+          const isOwnMessage = currentUserId === message.senderId;
+          return (
+            <div
+              key={message.id}
+              style={{
+                ...styles.message,
+                ...(message.senderId === parseInt(userId) ? styles.receivedMessage : styles.sentMessage),
+                boxShadow: openMenuId === message.id ? '0 4px 24px rgba(99,102,241,0.13)' : styles.message.boxShadow,
+                transition: 'box-shadow 0.18s',
+                position: 'relative',
+              }}
+              onMouseLeave={() => setOpenMenuId(null)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={styles.messageContent}>
+                  {shareData ? (
+                    <div style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, minWidth: 180, maxWidth: 260, background: '#f8fafc', borderRadius: 16, boxShadow: '0 2px 12px rgba(99,102,241,0.08)', padding: '14px 12px 10px 12px', margin: '0 auto',
+                    }}>
+                      {shareData.thumbnailUrl && (shareData.thumbnailUrl.endsWith('.mp4') || shareData.thumbnailUrl.endsWith('.webm')) ? (
+                        <video src={`http://localhost:5000${shareData.thumbnailUrl}`} style={{ width: '100%', maxWidth: 180, borderRadius: 12, background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} controls />
+                      ) : shareData.thumbnailUrl ? (
+                        <img src={`http://localhost:5000${shareData.thumbnailUrl}`} alt="thumbnail" style={{ width: '100%', maxWidth: 180, borderRadius: 12, objectFit: 'cover', background: '#eee', marginBottom: 8, boxShadow: '0 1px 6px #6366f122' }} />
+                      ) : null}
+                      <div style={{ fontWeight: 500, color: '#23223b', fontSize: 14, marginBottom: 2, textAlign: 'center', width: '100%', wordBreak: 'break-word', letterSpacing: 0.1 }}>{shareData.caption}</div>
+                    </div>
+                  ) : (
+                    message.content
+                  )}
+                </div>
+                <div style={{ position: 'relative', marginLeft: 8 }}>
+                  <button
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: openMenuId === message.id ? '#4f46e5' : '#888',
+                      fontSize: 20,
+                      padding: 4,
+                      borderRadius: 8,
+                      transition: 'color 0.18s, background 0.18s',
+                      boxShadow: openMenuId === message.id ? '0 2px 8px #6366f133' : 'none',
+                    }}
+                    onClick={() => setOpenMenuId(message.id)}
+                    aria-label="Mesaj seçenekleri"
+                  >
+                    <FaEllipsisV />
+                  </button>
+                  {openMenuId === message.id && (
+                    <div
+                      ref={menuRef}
+                      style={{
+                        position: 'absolute',
+                        top: 32,
+                        right: 0,
+                        background: '#fff',
+                        border: '1.5px solid #e0e7ff',
+                        borderRadius: 12,
+                        boxShadow: '0 8px 32px rgba(79,70,229,0.13)',
+                        zIndex: 20,
+                        minWidth: 170,
+                        padding: '6px 0',
+                        animation: 'fadeInMenu 0.18s cubic-bezier(.4,1.3,.6,1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
+                      }}
+                    >
+                      <button
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', color: '#23223b', fontWeight: 500, fontSize: 16, padding: '10px 20px', cursor: 'pointer', textAlign: 'left', borderRadius: 8, transition: 'background 0.15s',
+                          marginBottom: 2,
+                        }}
+                        onClick={() => { handleDeleteForMe(message.id); setOpenMenuId(null); }}
+                        onMouseOver={e => e.currentTarget.style.background = '#f3f4f6'}
+                        onMouseOut={e => e.currentTarget.style.background = 'none'}
+                      >
+                        <FaTrashAlt style={{ color: '#e11d48', fontSize: 18 }} /> Benden Sil
+                      </button>
+                      {isOwnMessage && (
+                        <button
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', color: '#e11d48', fontWeight: 600, fontSize: 16, padding: '10px 20px', cursor: 'pointer', textAlign: 'left', borderRadius: 8, transition: 'background 0.15s',
+                          }}
+                          onClick={() => { handleDeleteForAll(message.id); setOpenMenuId(null); }}
+                          onMouseOver={e => e.currentTarget.style.background = '#fef2f2'}
+                          onMouseOut={e => e.currentTarget.style.background = 'none'}
+                        >
+                          <FaTrashRestore style={{ color: '#e11d48', fontSize: 18 }} /> Herkesten Sil
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div style={styles.messageTime}>
+                {formatMessageTime(message.createdAt)}
+              </div>
             </div>
-            <div style={styles.messageTime}>
-              {formatMessageTime(message.createdAt)}
-            </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 
